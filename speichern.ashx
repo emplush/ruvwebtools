@@ -7,20 +7,17 @@ using System.IO;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Web;
-using System.Web.Configuration;
 using System.Web.Script.Serialization;
 
 /// Speichert die Kachel-Konfiguration als daten/kacheln.json. Keine Datenbank nötig.
 /// Der Ordner "daten" braucht Schreibrechte für die App-Pool-Identität.
 ///
-/// GET  liefert {"bereit":true,"geschuetzt":…}, damit die Einstellungen den Zustand anzeigen können.
+/// GET  liefert {"bereit":true}, damit die Einstellungen erkennen, dass direktes Speichern eingerichtet ist.
 /// POST speichert. Erwartete Kopfzeilen:
 ///   X-Webtools: 1                    – Schutz gegen Formular-Posts von fremden Seiten
 ///   X-Webtools-Basis: <stand>        – "stand" der Datei, auf dem die Bearbeitung aufbaut
 ///   X-Webtools-Ueberschreiben: 1     – optional, speichert trotz abweichendem Stand
-///   X-Webtools-Passwort: <passwort>  – URL-kodiert, nur wenn in der web.config gesetzt
 /// Bilder, die als Data-URL ankommen, werden als Dateien unter daten/bilder abgelegt.
 public class KachelnSpeichern : IHttpHandler
 {
@@ -51,14 +48,11 @@ public class KachelnSpeichern : IHttpHandler
             string methode = ctx.Request.HttpMethod;
             if (methode == "GET")
             {
-                // Als geschützt gilt: Passwort gesetzt oder Zugriff nur mit Windows-Anmeldung (Block am Ende der web.config)
-                bool geschuetzt = Passwort() != "" || ctx.Request.IsAuthenticated;
-                Antwort(ctx, ser, 200, new Dictionary<string, object> { { "bereit", true }, { "geschuetzt", geschuetzt } });
+                Antwort(ctx, ser, 200, new Dictionary<string, object> { { "bereit", true } });
                 return;
             }
             if (methode != "POST") throw new Fehler(405, "Nur GET und POST erlaubt", "methode");
             if (ctx.Request.Headers["X-Webtools"] != "1") throw new Fehler(400, "Anfrage ohne Kennung", "kennung");
-            PasswortPruefen(ctx);
 
             string inhalt;
             using (var leser = new StreamReader(ctx.Request.InputStream, Encoding.UTF8))
@@ -139,35 +133,6 @@ public class KachelnSpeichern : IHttpHandler
     {
         ctx.Response.StatusCode = status;
         ctx.Response.Write(ser.Serialize(inhalt));
-    }
-
-    static string Passwort()
-    {
-        return WebConfigurationManager.AppSettings["SpeichernPasswort"] ?? "";
-    }
-
-    static void PasswortPruefen(HttpContext ctx)
-    {
-        string soll = Passwort();
-        if (soll == "") return;
-        string ist = ctx.Request.Headers["X-Webtools-Passwort"];
-        if (string.IsNullOrEmpty(ist)) throw new Fehler(403, "Zum Speichern ist ein Passwort nötig.", "passwort");
-        try { ist = Uri.UnescapeDataString(ist); } catch { ist = ""; }
-        if (!Gleich(ist, soll))
-        {
-            Thread.Sleep(1000); // bremst das Durchprobieren von Passwörtern
-            throw new Fehler(403, "Das Passwort ist falsch.", "passwort");
-        }
-    }
-
-    // Vergleich mit konstanter Laufzeit
-    static bool Gleich(string a, string b)
-    {
-        byte[] x = Encoding.UTF8.GetBytes(a), y = Encoding.UTF8.GetBytes(b);
-        if (x.Length == 0 || y.Length == 0) return false;
-        int unterschied = x.Length ^ y.Length;
-        for (int i = 0; i < x.Length; i++) unterschied |= x[i] ^ y[i % y.Length];
-        return unterschied == 0;
     }
 
     static string Text(Dictionary<string, object> d, string schluessel)

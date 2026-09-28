@@ -1,7 +1,6 @@
 /* Einstellungen: Kacheln verwalten, sortieren, Bilder zuschneiden, speichern */
 (function(){
   var ENTWURF = "webtools-entwurf";
-  var PASSWORT = "webtools-passwort";
   var SPEICHER_URL = "speichern.ashx";
   var ORIGINAL_MAX = 1600; /* längere Seite des aufbewahrten Originals in Pixeln */
   function $(id){ return document.getElementById(id); }
@@ -12,10 +11,7 @@
   var bearbeiteId = null;  /* null = neue Kachel */
   var formBild = "";       /* zugeschnittenes Bild im Formular */
   var formOriginal = "";   /* Original für erneuten Zuschnitt (Pfad oder Data-URL) */
-  var passwort = "";
   var entwurfWarnung = false;
-
-  try { passwort = sessionStorage.getItem(PASSWORT) || ""; } catch(_){}
 
   /* ---------- Laden ---------- */
   WT.laden().catch(function(){
@@ -28,20 +24,15 @@
     return entwurfPruefen();
   }).then(alles);
 
-  /* Zeigt an, ob der Speicher-Handler läuft und ob er geschützt ist */
+  /* Weist darauf hin, wenn der Speicher-Handler auf dem Server nicht läuft */
   fetch(SPEICHER_URL + "?t=" + Date.now(), {cache:"no-store", credentials:"same-origin"})
     .then(function(r){ return r.ok ? r.json() : null; })
     .catch(function(){ return null; })
     .then(function(d){
+      if (d && d.bereit) return;
       var h = $("serverhinweis");
-      if (d && d.bereit){
-        if (d.geschuetzt) return;
-        h.textContent = "Achtung: Das Speichern ist nicht geschützt – jede Person im Netz könnte die Kacheln ändern. " +
-          "Bitte in der web.config ein Passwort (SpeichernPasswort) setzen oder die Windows-Anmeldung aktivieren (siehe LIESMICH.md).";
-      } else {
-        h.textContent = "Direktes Speichern ist auf diesem Server nicht eingerichtet. „Speichern“ lädt kacheln.json herunter; " +
-          "die Datei muss dann von Hand in den Ordner „daten“ kopiert werden.";
-      }
+      h.textContent = "Direktes Speichern ist auf diesem Server nicht eingerichtet. „Speichern“ lädt kacheln.json herunter; " +
+        "die Datei muss dann von Hand in den Ordner „daten“ kopiert werden.";
       h.classList.remove("versteckt");
     });
 
@@ -337,7 +328,6 @@
   function senden(ueberschreiben){
     var kopf = { "Content-Type": "application/json; charset=utf-8", "X-Webtools": "1", "X-Webtools-Basis": basis };
     if (ueberschreiben) kopf["X-Webtools-Ueberschreiben"] = "1";
-    if (passwort) kopf["X-Webtools-Passwort"] = encodeURIComponent(passwort);
     return fetch(SPEICHER_URL, { method:"POST", headers:kopf, body: JSON.stringify(cfg), credentials:"same-origin" })
       .then(function(r){
         return r.text().then(function(t){
@@ -346,25 +336,6 @@
         });
       });
   }
-
-  function passwortAbfragen(text){
-    return new Promise(function(fertig){
-      var dlg = $("passwortdialog"), feld = $("p-passwort");
-      $("p-text").textContent = text;
-      feld.value = "";
-      dlg.returnValue = "";
-      dlg.onclose = function(){
-        dlg.onclose = null;
-        if (dlg.returnValue !== "ok" || !feld.value){ fertig(false); return; }
-        passwort = feld.value; feld.value = "";
-        try { sessionStorage.setItem(PASSWORT, passwort); } catch(_){}
-        fertig(true);
-      };
-      dlg.showModal();
-      feld.focus();
-    });
-  }
-  $("p-abbrechen").onclick = function(){ $("passwortdialog").close(""); };
 
   function speichern(ueberschreiben){
     var b = $("speichern"); b.disabled = true; b.textContent = "Wird gespeichert …";
@@ -390,14 +361,6 @@
         }).then(function(ok){
           if (ok) return speichern(true);
           WT.melden("Nicht gespeichert. Tipp: Mit „Datei herunterladen“ deine Fassung sichern, dann die Seite neu laden und die Änderungen erneut vornehmen.", true);
-        });
-      }
-      if (a.status === 403 && a.d.grund === "passwort"){
-        passwort = "";
-        try { sessionStorage.removeItem(PASSWORT); } catch(_){}
-        return passwortAbfragen(a.d.fehler || "Zum Speichern ist ein Passwort nötig.").then(function(ok){
-          if (ok) return speichern(ueberschreiben);
-          WT.melden("Nicht gespeichert.", true);
         });
       }
       if (a.status === 413) throw new Error("Die Daten sind zu groß. Bitte weniger oder kleinere Bilder verwenden.");

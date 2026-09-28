@@ -7,34 +7,24 @@
 - `daten/kacheln.json` – alle Kacheln und Seitentexte (keine Datenbank nötig)
 - `daten/bilder/` – Kachelbilder und Logo; wird beim ersten Speichern automatisch angelegt
 - `speichern.ashx` – schreibt Änderungen direkt auf den Server (optional)
-- `web.config` – IIS-Einstellungen, u. a. das Passwort zum Speichern
+- `web.config` – IIS-Einstellungen
 
 ## Einrichtung
 1. Ordnerinhalt in das Verzeichnis der Website kopieren (z. B. `C:\inetpub\wwwroot\webtools`).
 2. Für direktes Speichern: In den Windows-Features „ASP.NET 4.x“ unter IIS aktivieren.
 3. Dem App-Pool-Benutzer (z. B. `IIS AppPool\DefaultAppPool`) Schreibrechte auf den Ordner `daten` geben
    (inklusive Unterordner).
-4. **Speichern schützen** – eine der beiden Möglichkeiten (siehe unten).
-5. Seite im Browser aufrufen.
+4. Seite im Browser aufrufen.
 
 Ohne ASP.NET funktioniert alles ebenfalls: Beim Speichern wird dann `kacheln.json`
 heruntergeladen und muss manuell in den Ordner `daten` kopiert werden. Die Bilder
 stecken in diesem Fall direkt in der Datei. Die Einstellungsseite zeigt an, welcher Modus aktiv ist.
 
-## Speichern schützen
-Ohne Schutz kann jede Person im Netz die Kacheln ändern. Die Einstellungsseite zeigt
-dann einen orangefarbenen Warnhinweis.
-
-**Möglichkeit A – Passwort (einfach):** In der `web.config` oben den Wert von
-`SpeichernPasswort` setzen. Beim ersten Speichern fragt die Seite das Passwort ab und
-merkt es sich, bis der Browser-Tab geschlossen wird. Die `web.config` wird von IIS nie ausgeliefert.
-
-**Möglichkeit B – Windows-Anmeldung:** Den vorbereiteten Block am Ende der `web.config`
-einkommentieren und die Gruppe anpassen. Voraussetzung: In IIS sind die Rolle
+## Zugriff beschränken (optional)
+Einstellungen und Speichern sind für alle erreichbar, die die Seite aufrufen können.
+Soll nur eine bestimmte Gruppe ändern dürfen, den vorbereiteten Block am Ende der
+`web.config` einkommentieren und die Gruppe anpassen. Voraussetzung: In IIS sind die Rolle
 „URL-Autorisierung“ installiert und für die Site „Windows-Authentifizierung“ aktiviert.
-
-Beides lässt sich auch kombinieren. Da die Einstellungen über den Knopf „Anpassen“ für alle
-erreichbar sind, ist einer der beiden Schutzwege dringend zu empfehlen.
 
 ## Einstellungen öffnen
 - Knopf **„Anpassen“** oben rechts auf der Übersicht
@@ -57,7 +47,7 @@ erreichbar sind, ist einer der beiden Schutzwege dringend zu empfehlen.
 
 ## Aktualisieren
 Beim Einspielen einer neuen Version den Ordner `daten` **nicht** überschreiben – er enthält
-die aktuellen Kacheln und Bilder. Ein bereits gesetztes Passwort in der `web.config` übernehmen.
+die aktuellen Kacheln und Bilder.
 
 ## Anpassungen
 - Farben und Schrift: oben in `assets/rv.css` unter `:root`

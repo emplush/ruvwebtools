@@ -86,8 +86,8 @@ main{flex:1;width:100%;max-width:1240px;margin:0 auto;padding:44px 28px 64px}
 .knopf:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--rv-orange);outline-offset:2px}
 
 label{display:block;font-size:.875rem;font-weight:600;margin:16px 0 6px}
-input[type=text],input[type=url],input[type=password],textarea{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:8px;font:inherit;color:var(--text);background:var(--weiss)}
-input[type=text]:focus,input[type=url]:focus,input[type=password]:focus,textarea:focus{border-color:var(--rv-blau-mittel)}
+input[type=text],input[type=url],textarea{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:8px;font:inherit;color:var(--text);background:var(--weiss)}
+input[type=text]:focus,input[type=url]:focus,textarea:focus{border-color:var(--rv-blau-mittel)}
 textarea{resize:vertical;min-height:70px}
 .hinweis{font-size:.85rem;color:var(--text-leise);margin:6px 0 0}
 .versteckt{display:none !important}
@@ -131,7 +131,7 @@ textarea{resize:vertical;min-height:70px}
 .logovorschau{height:56px;min-width:120px;padding:8px 12px;border-radius:8px;background:var(--rv-blau);display:inline-flex;align-items:center;color:var(--rv-blau-text);font-size:.85rem}
 .logovorschau img{max-height:40px}
 
-/* ---------- Dialoge (Zuschnitt, Passwort) ---------- */
+/* ---------- Dialoge (Zuschnitt, Rückfragen) ---------- */
 dialog.zuschnitt,dialog.fenster{border:none;border-radius:18px;padding:0;width:min(480px,94vw);box-shadow:0 24px 64px rgba(0,20,50,.35)}
 dialog.fenster{width:min(400px,94vw)}
 dialog.zuschnitt::backdrop,dialog.fenster::backdrop{background:rgba(0,27,60,.6)}
