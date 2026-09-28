@@ -25,9 +25,8 @@
     basis = d.stand; delete d.stand;
     cfg = d;
     gespeichert = JSON.stringify(cfg);
-    entwurfPruefen();
-    alles();
-  });
+    return entwurfPruefen();
+  }).then(alles);
 
   /* Zeigt an, ob der Speicher-Handler läuft und ob er geschützt ist */
   fetch(SPEICHER_URL + "?t=" + Date.now(), {cache:"no-store", credentials:"same-origin"})
@@ -60,19 +59,38 @@
     var entwurf = WT.normalisieren(e.cfg); delete entwurf.stand;
     if (JSON.stringify(entwurf) === gespeichert){ entwurfLoeschen(); return; }
 
-    if ((e.basis || "") !== basis){
-      var wann = e.zeit ? " vom " + new Date(e.zeit).toLocaleString("de-DE") : "";
-      if (!confirm("Es gibt einen nicht gespeicherten Entwurf" + wann + ".\n\n" +
-          "Die Übersicht wurde seitdem aber neu gespeichert – vermutlich von jemand anderem. " +
-          "Wenn du den Entwurf lädst und speicherst, wird dieser neuere Stand überschrieben.\n\n" +
-          "OK = Entwurf laden\nAbbrechen = Entwurf verwerfen und aktuellen Stand anzeigen")){
-        entwurfLoeschen();
-        WT.melden("Entwurf verworfen. Es wird der aktuelle Stand angezeigt.");
-        return;
-      }
+    if ((e.basis || "") === basis){
+      cfg = entwurf;
+      WT.melden("Nicht gespeicherter Entwurf wiederhergestellt.");
+      return;
     }
-    cfg = entwurf;
-    WT.melden("Nicht gespeicherter Entwurf wiederhergestellt.");
+    var wann = e.zeit ? " vom " + new Date(e.zeit).toLocaleString("de-DE") : "";
+    return bestaetigen({
+      titel: "Veralteter Entwurf",
+      text: "Es gibt einen nicht gespeicherten Entwurf" + wann + ". Die Übersicht wurde seitdem aber neu gespeichert – vermutlich von jemand anderem.\n\n" +
+        "Wenn du den Entwurf lädst und speicherst, wird dieser neuere Stand überschrieben.",
+      ok: "Entwurf laden", abbrechen: "Entwurf verwerfen"
+    }).then(function(laden){
+      if (laden){ cfg = entwurf; WT.melden("Nicht gespeicherter Entwurf wiederhergestellt."); return; }
+      entwurfLoeschen();
+      WT.melden("Entwurf verworfen. Es wird der aktuelle Stand angezeigt.");
+    });
+  }
+
+  /* Rückfrage im eigenen Dialog (statt confirm), liefert true bei Bestätigung */
+  function bestaetigen(o){
+    return new Promise(function(fertig){
+      var dlg = $("frage");
+      $("f-titel").textContent = o.titel;
+      $("f-text").textContent = o.text;
+      $("f-ok").textContent = o.ok || "OK";
+      $("f-ok").className = "knopf " + (o.gefahr ? "gefahr-voll" : "primaer");
+      $("f-abbrechen").textContent = o.abbrechen || "Abbrechen";
+      dlg.returnValue = "";
+      dlg.onclose = function(){ dlg.onclose = null; fertig(dlg.returnValue === "ok"); };
+      dlg.showModal();
+      $("f-abbrechen").focus();
+    });
   }
 
   function aendern(){
@@ -135,11 +153,15 @@
     if (b.dataset.a === "hoch") verschieben(i, i - 1);
     else if (b.dataset.a === "runter") verschieben(i, i + 1);
     else if (b.dataset.a === "edit") bearbeiten(k.id);
-    else if (b.dataset.a === "del" && confirm("Kachel „" + k.titel + "“ entfernen?")){
-      cfg.kacheln.splice(i, 1);
-      if (bearbeiteId === k.id) formLeeren();
-      aendern();
-      WT.melden("Kachel entfernt.");
+    else if (b.dataset.a === "del"){
+      bestaetigen({ titel: "Kachel entfernen", text: "„" + k.titel + "“ wird aus der Übersicht entfernt.", ok: "Entfernen", gefahr: true })
+        .then(function(ok){
+          if (!ok) return;
+          cfg.kacheln = cfg.kacheln.filter(function(x){ return x.id !== k.id; });
+          if (bearbeiteId === k.id) formLeeren();
+          aendern();
+          WT.melden("Kachel entfernt.");
+        });
     }
   });
 
@@ -361,11 +383,14 @@
         return;
       }
       if (a.status === 409){
-        if (confirm("Die Übersicht wurde inzwischen von jemand anderem gespeichert.\n\n" +
-            "OK = trotzdem speichern und die andere Fassung überschreiben\n" +
-            "Abbrechen = nicht speichern")) return speichern(true);
-        WT.melden("Nicht gespeichert. Tipp: Mit „Datei herunterladen“ deine Fassung sichern, dann die Seite neu laden und die Änderungen erneut vornehmen.", true);
-        return;
+        return bestaetigen({
+          titel: "Zwischendurch geändert",
+          text: "Die Übersicht wurde inzwischen von jemand anderem gespeichert. Wenn du jetzt speicherst, wird diese andere Fassung überschrieben.",
+          ok: "Trotzdem speichern", abbrechen: "Nicht speichern", gefahr: true
+        }).then(function(ok){
+          if (ok) return speichern(true);
+          WT.melden("Nicht gespeichert. Tipp: Mit „Datei herunterladen“ deine Fassung sichern, dann die Seite neu laden und die Änderungen erneut vornehmen.", true);
+        });
       }
       if (a.status === 403 && a.d.grund === "passwort"){
         passwort = "";
@@ -385,11 +410,14 @@
   $("speichern").onclick = function(){ speichern(false); };
 
   $("verwerfen").onclick = function(){
-    if (!confirm("Alle nicht gespeicherten Änderungen verwerfen?")) return;
-    cfg = JSON.parse(gespeichert);
-    entwurfLoeschen();
-    alles();
-    WT.melden("Änderungen verworfen.");
+    bestaetigen({ titel: "Änderungen verwerfen", text: "Alle nicht gespeicherten Änderungen gehen verloren.", ok: "Verwerfen", gefahr: true })
+      .then(function(ok){
+        if (!ok) return;
+        cfg = JSON.parse(gespeichert);
+        entwurfLoeschen();
+        alles();
+        WT.melden("Änderungen verworfen.");
+      });
   };
 
   $("export").onclick = herunterladen;
