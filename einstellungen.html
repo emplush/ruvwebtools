@@ -28,6 +28,7 @@
 </div>
 
 <main>
+  <p class="serverhinweis versteckt" id="serverhinweis" role="note"></p>
   <div class="einst-raster">
     <div>
       <section class="feld" aria-labelledby="h-kacheln">
@@ -107,6 +108,23 @@
     <button class="knopf" id="z-abbrechen">Abbrechen</button>
     <button class="knopf primaer" id="z-ok">Ausschnitt übernehmen</button>
   </div>
+</dialog>
+
+<dialog class="fenster" id="passwortdialog" aria-labelledby="p-titel">
+  <form method="dialog">
+    <div class="kopfzeile">
+      <h3 id="p-titel">Passwort zum Speichern</h3>
+    </div>
+    <div class="koerper">
+      <p class="hinweis" id="p-text"></p>
+      <label for="p-passwort">Passwort</label>
+      <input type="password" id="p-passwort" autocomplete="current-password" required>
+    </div>
+    <div class="fuss">
+      <button type="button" class="knopf" id="p-abbrechen">Abbrechen</button>
+      <button type="submit" class="knopf primaer" value="ok">Speichern</button>
+    </div>
+  </form>
 </dialog>
 
 <div class="meldung" id="meldung" role="status"></div>

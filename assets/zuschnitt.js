@@ -112,5 +112,28 @@
     });
   }
 
-  window.Zuschnitt = { oeffnen: oeffnen };
+  /* Verkleinert eine Bilddatei auf höchstens maxKante Pixel (längere Seite) und liefert eine JPEG-Data-URL.
+     Dient als Original für späteres erneutes Zuschneiden, ohne die Daten unnötig aufzublähen. */
+  function verkleinern(datei, maxKante){
+    return new Promise(function(ok, fehler){
+      var img = new Image(), url = URL.createObjectURL(datei);
+      img.onload = function(){
+        URL.revokeObjectURL(url);
+        if (!img.naturalWidth){ fehler(new Error("leer")); return; }
+        var f = Math.min(1, maxKante / Math.max(img.naturalWidth, img.naturalHeight));
+        var c = document.createElement("canvas");
+        c.width = Math.round(img.naturalWidth * f); c.height = Math.round(img.naturalHeight * f);
+        var g = c.getContext("2d");
+        g.fillStyle = "#FFFFFF";
+        g.fillRect(0, 0, c.width, c.height);
+        g.imageSmoothingQuality = "high";
+        g.drawImage(img, 0, 0, c.width, c.height);
+        ok(c.toDataURL("image/jpeg", 0.9));
+      };
+      img.onerror = function(){ URL.revokeObjectURL(url); fehler(new Error("Bild nicht lesbar")); };
+      img.src = url;
+    });
+  }
+
+  window.Zuschnitt = { oeffnen: oeffnen, verkleinern: verkleinern };
 })();

@@ -4,31 +4,62 @@
 - `index.html` – Übersicht mit den Kacheln
 - `einstellungen.html` – Verwaltung (nicht verlinkt)
 - `assets/` – Gestaltung und Skripte
-- `daten/kacheln.json` – alle Kacheln, Bilder und Seitentexte (keine Datenbank nötig)
-- `speichern.ashx` – schreibt Änderungen direkt nach `daten/kacheln.json` (optional)
-- `web.config` – IIS-Einstellungen
+- `daten/kacheln.json` – alle Kacheln und Seitentexte (keine Datenbank nötig)
+- `daten/bilder/` – Kachelbilder und Logo; wird beim ersten Speichern automatisch angelegt
+- `speichern.ashx` – schreibt Änderungen direkt auf den Server (optional)
+- `web.config` – IIS-Einstellungen, u. a. das Passwort zum Speichern
 
 ## Einrichtung
 1. Ordnerinhalt in das Verzeichnis der Website kopieren (z. B. `C:\inetpub\wwwroot\webtools`).
 2. Für direktes Speichern: In den Windows-Features „ASP.NET 4.x“ unter IIS aktivieren.
-3. Dem App-Pool-Benutzer (z. B. `IIS AppPool\DefaultAppPool`) Schreibrechte auf den Ordner `daten` geben.
-4. Seite im Browser aufrufen.
+3. Dem App-Pool-Benutzer (z. B. `IIS AppPool\DefaultAppPool`) Schreibrechte auf den Ordner `daten` geben
+   (inklusive Unterordner).
+4. **Speichern schützen** – eine der beiden Möglichkeiten (siehe unten).
+5. Seite im Browser aufrufen.
 
 Ohne ASP.NET funktioniert alles ebenfalls: Beim Speichern wird dann `kacheln.json`
-heruntergeladen und muss manuell in den Ordner `daten` kopiert werden.
+heruntergeladen und muss manuell in den Ordner `daten` kopiert werden. Die Bilder
+stecken in diesem Fall direkt in der Datei. Die Einstellungsseite zeigt an, welcher Modus aktiv ist.
+
+## Speichern schützen
+Ohne Schutz kann jede Person im Netz die Kacheln ändern. Die Einstellungsseite zeigt
+dann einen orangefarbenen Warnhinweis.
+
+**Möglichkeit A – Passwort (einfach):** In der `web.config` oben den Wert von
+`SpeichernPasswort` setzen. Beim ersten Speichern fragt die Seite das Passwort ab und
+merkt es sich, bis der Browser-Tab geschlossen wird. Die `web.config` wird von IIS nie ausgeliefert.
+
+**Möglichkeit B – Windows-Anmeldung:** Den vorbereiteten Block am Ende der `web.config`
+einkommentieren und die Gruppe anpassen. Voraussetzung: In IIS sind die Rolle
+„URL-Autorisierung“ installiert und für die Site „Windows-Authentifizierung“ aktiviert.
+
+Beides lässt sich auch kombinieren. Das Verstecken der Einstellungen (siehe unten) ist
+dagegen kein Schutz.
 
 ## Einstellungen öffnen
 - Tastenkürzel **Strg + Alt + M** auf der Übersicht
 - **5× schnell** auf die Fußzeile klicken
 - oder direkt `einstellungen.html` aufrufen
 
-Das Verstecken schützt nicht vor gezieltem Zugriff. Für echten Schutz den
-vorbereiteten Block am Ende der `web.config` aktivieren (Windows-Authentifizierung
-und URL-Autorisierung nötig).
+## Wie gespeichert wird
+- **Bilder** werden als Dateien in `daten/bilder` abgelegt (Dateiname = Prüfsumme des Inhalts),
+  `kacheln.json` enthält nur die Pfade und bleibt dadurch klein. Nicht mehr benutzte Bilder
+  werden beim Speichern automatisch gelöscht.
+- Zu jedem Kachelbild wird zusätzlich das **Original** (verkleinert auf max. 1600 px) aufbewahrt.
+  „Ausschnitt ändern“ arbeitet mit diesem Original, damit keine Qualität verloren geht.
+- Vor jedem Speichern legt der Server eine **Sicherung** als `daten/kacheln.vorher.json` an.
+  Bilder, die die Sicherung noch braucht, bleiben erhalten.
+- **Gleichzeitiges Bearbeiten:** `kacheln.json` enthält einen Zeitstempel (`stand`). Hat seit dem
+  Öffnen der Einstellungen jemand anderes gespeichert, fragt die Seite nach, ob dessen Fassung
+  überschrieben werden soll. Das gilt auch für einen im Browser zwischengespeicherten Entwurf.
+- Als Kachel-Link sind nur `http://`- und `https://`-Adressen erlaubt.
+
+## Aktualisieren
+Beim Einspielen einer neuen Version den Ordner `daten` **nicht** überschreiben – er enthält
+die aktuellen Kacheln und Bilder. Ein bereits gesetztes Passwort in der `web.config` übernehmen.
 
 ## Anpassungen
 - Farben und Schrift: oben in `assets/rv.css` unter `:root`
 - Logo: in den Einstellungen unter „Seite“ hochladen
 - Bildgröße der Kacheln: `AUSGABE` in `assets/zuschnitt.js` (Standard 600 × 600 px)
-
-Vor jedem Speichern legt der Server eine Sicherung als `daten/kacheln.vorher.json` an.
+- Größe der aufbewahrten Originale: `ORIGINAL_MAX` in `assets/einstellungen.js` (Standard 1600 px)

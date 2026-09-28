@@ -1,34 +1,89 @@
 /* Einstellungen: Kacheln verwalten, sortieren, Bilder zuschneiden, speichern */
 (function(){
   var ENTWURF = "webtools-entwurf";
+  var PASSWORT = "webtools-passwort";
   var SPEICHER_URL = "speichern.ashx";
+  var ORIGINAL_MAX = 1600; /* längere Seite des aufbewahrten Originals in Pixeln */
   function $(id){ return document.getElementById(id); }
 
   var cfg = null;          /* aktueller Bearbeitungsstand */
   var gespeichert = "";    /* zuletzt gespeicherter Stand (JSON) */
+  var basis = "";          /* "stand" der Server-Datei, auf dem die Bearbeitung aufbaut */
   var bearbeiteId = null;  /* null = neue Kachel */
   var formBild = "";       /* zugeschnittenes Bild im Formular */
-  var formOriginal = null; /* Originaldatei für erneuten Zuschnitt */
+  var formOriginal = "";   /* Original für erneuten Zuschnitt (Pfad oder Data-URL) */
+  var passwort = "";
+  var entwurfWarnung = false;
+
+  try { passwort = sessionStorage.getItem(PASSWORT) || ""; } catch(_){}
 
   /* ---------- Laden ---------- */
   WT.laden().catch(function(){
     WT.melden("daten/kacheln.json nicht gefunden. Es wird mit einer leeren Liste begonnen.", true);
-    return JSON.parse(JSON.stringify(WT.STANDARD));
-  }).then(function(basis){
-    gespeichert = JSON.stringify(basis);
-    cfg = basis;
-    try {
-      var e = localStorage.getItem(ENTWURF);
-      if (e && e !== gespeichert){ cfg = JSON.parse(e); WT.melden("Nicht gespeicherter Entwurf wiederhergestellt."); }
-    } catch(_){}
+    return WT.normalisieren({});
+  }).then(function(d){
+    basis = d.stand; delete d.stand;
+    cfg = d;
+    gespeichert = JSON.stringify(cfg);
+    entwurfPruefen();
     alles();
   });
+
+  /* Zeigt an, ob der Speicher-Handler läuft und ob er geschützt ist */
+  fetch(SPEICHER_URL + "?t=" + Date.now(), {cache:"no-store", credentials:"same-origin"})
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .catch(function(){ return null; })
+    .then(function(d){
+      var h = $("serverhinweis");
+      if (d && d.bereit){
+        if (d.geschuetzt) return;
+        h.textContent = "Achtung: Das Speichern ist nicht geschützt – jede Person im Netz könnte die Kacheln ändern. " +
+          "Bitte in der web.config ein Passwort (SpeichernPasswort) setzen oder die Windows-Anmeldung aktivieren (siehe LIESMICH.md).";
+      } else {
+        h.textContent = "Direktes Speichern ist auf diesem Server nicht eingerichtet. „Speichern“ lädt kacheln.json herunter; " +
+          "die Datei muss dann von Hand in den Ordner „daten“ kopiert werden.";
+      }
+      h.classList.remove("versteckt");
+    });
 
   function alles(){ WT.kopfAnwenden(cfg); liste(); seite(); status(); formLeeren(); }
   function geaendert(){ return JSON.stringify(cfg) !== gespeichert; }
 
+  /* ---------- Entwurf im Browser ---------- */
+  function entwurfLoeschen(){ try { localStorage.removeItem(ENTWURF); } catch(_){} }
+
+  function entwurfPruefen(){
+    var e;
+    try { e = JSON.parse(localStorage.getItem(ENTWURF) || "null"); } catch(_){ return; }
+    if (!e || typeof e !== "object") return;
+    if (!e.cfg) e = { basis: "", cfg: e }; /* Entwurf aus der ersten Version */
+    var entwurf = WT.normalisieren(e.cfg); delete entwurf.stand;
+    if (JSON.stringify(entwurf) === gespeichert){ entwurfLoeschen(); return; }
+
+    if ((e.basis || "") !== basis){
+      var wann = e.zeit ? " vom " + new Date(e.zeit).toLocaleString("de-DE") : "";
+      if (!confirm("Es gibt einen nicht gespeicherten Entwurf" + wann + ".\n\n" +
+          "Die Übersicht wurde seitdem aber neu gespeichert – vermutlich von jemand anderem. " +
+          "Wenn du den Entwurf lädst und speicherst, wird dieser neuere Stand überschrieben.\n\n" +
+          "OK = Entwurf laden\nAbbrechen = Entwurf verwerfen und aktuellen Stand anzeigen")){
+        entwurfLoeschen();
+        WT.melden("Entwurf verworfen. Es wird der aktuelle Stand angezeigt.");
+        return;
+      }
+    }
+    cfg = entwurf;
+    WT.melden("Nicht gespeicherter Entwurf wiederhergestellt.");
+  }
+
   function aendern(){
-    try { localStorage.setItem(ENTWURF, JSON.stringify(cfg)); } catch(_){ }
+    try {
+      localStorage.setItem(ENTWURF, JSON.stringify({ basis: basis, zeit: new Date().toISOString(), cfg: cfg }));
+    } catch(_){
+      if (!entwurfWarnung){
+        entwurfWarnung = true;
+        WT.melden("Der Entwurf ist zu groß für den Zwischenspeicher des Browsers. Bitte bald speichern.", true);
+      }
+    }
     WT.kopfAnwenden(cfg);
     liste(); status();
   }
@@ -55,7 +110,7 @@
     l.innerHTML = cfg.kacheln.map(function(k, i){
       var bild = k.bild ? '<img class="mini" src="' + WT.esc(k.bild) + '" alt="">'
                         : '<span class="mini">' + WT.esc((k.titel||"?").charAt(0).toUpperCase()) + '</span>';
-      return '<li class="eintrag' + (k.id === bearbeiteId ? ' aktiv' : '') + '" draggable="true" data-i="' + i + '">' +
+      return '<li class="eintrag' + (k.id === bearbeiteId ? ' aktiv' : '') + '" data-i="' + i + '">' +
         '<span class="griff" title="Zum Verschieben ziehen" aria-hidden="true">⠿</span>' + bild +
         '<div class="texte"><div class="titel">' + WT.esc(k.titel) + '</div><div class="url">' + WT.esc(WT.host(k.link)) + '</div></div>' +
         '<div class="knoepfe">' +
@@ -88,29 +143,41 @@
     }
   });
 
-  var zieh = null;
-  $("liste").addEventListener("dragstart", function(e){
-    var li = e.target.closest("li"); if (!li) return;
-    zieh = +li.dataset.i; li.classList.add("ziehen");
-    e.dataTransfer.effectAllowed = "move";
-    try { e.dataTransfer.setData("text/plain", String(zieh)); } catch(_){}
-  });
-  $("liste").addEventListener("dragover", function(e){
-    e.preventDefault();
-    var li = e.target.closest("li");
+  /* Ziehen am Griff – mit Pointer-Events, damit es mit Maus, Stift und Touch funktioniert */
+  var zug = null;
+  function zielBei(x, y){
+    var el = document.elementFromPoint(x, y);
+    var li = el && el.closest(".eintrag");
+    return li && $("liste").contains(li) ? li : null;
+  }
+  function zielMarkieren(li){
     document.querySelectorAll(".eintrag.ziel").forEach(function(x){ if (x !== li) x.classList.remove("ziel"); });
-    if (li) li.classList.add("ziel");
-  });
-  $("liste").addEventListener("drop", function(e){
+    if (li && li !== zug.li) li.classList.add("ziel");
+  }
+  $("liste").addEventListener("pointerdown", function(e){
+    var g = e.target.closest(".griff");
+    if (!g || e.button > 0) return;
     e.preventDefault();
-    var li = e.target.closest("li");
-    if (li && zieh !== null) verschieben(zieh, +li.dataset.i);
-    zieh = null;
+    var li = g.closest("li");
+    zug = { von: +li.dataset.i, li: li, zeiger: e.pointerId };
+    g.setPointerCapture(e.pointerId);
+    li.classList.add("ziehen");
   });
-  $("liste").addEventListener("dragend", function(){
-    zieh = null;
+  $("liste").addEventListener("pointermove", function(e){
+    if (!zug || e.pointerId !== zug.zeiger) return;
+    zielMarkieren(zielBei(e.clientX, e.clientY));
+    if (e.clientY < 60) window.scrollBy(0, -12);
+    else if (e.clientY > window.innerHeight - 60) window.scrollBy(0, 12);
+  });
+  function zugEnde(e){
+    if (!zug || e.pointerId !== zug.zeiger) return;
+    var ziel = e.type === "pointerup" ? zielBei(e.clientX, e.clientY) : null, von = zug.von;
+    zug = null;
     document.querySelectorAll(".eintrag.ziehen,.eintrag.ziel").forEach(function(x){ x.classList.remove("ziehen","ziel"); });
-  });
+    if (ziel) verschieben(von, +ziel.dataset.i);
+  }
+  $("liste").addEventListener("pointerup", zugEnde);
+  $("liste").addEventListener("pointercancel", zugEnde);
 
   /* ---------- Kachel-Formular ---------- */
   function vorschau(){
@@ -121,7 +188,7 @@
   }
 
   function formLeeren(){
-    bearbeiteId = null; formBild = ""; formOriginal = null;
+    bearbeiteId = null; formBild = ""; formOriginal = "";
     $("k-titel").value = ""; $("k-link").value = "";
     $("h-editor").textContent = "Neue Kachel";
     $("k-uebernehmen").textContent = "Kachel hinzufügen";
@@ -130,7 +197,7 @@
 
   function bearbeiten(id){
     var k = cfg.kacheln.filter(function(x){ return x.id === id; })[0]; if (!k) return;
-    bearbeiteId = id; formBild = k.bild || ""; formOriginal = null;
+    bearbeiteId = id; formBild = k.bild || ""; formOriginal = k.original || "";
     $("k-titel").value = k.titel; $("k-link").value = k.link;
     $("h-editor").textContent = "Kachel bearbeiten";
     $("k-uebernehmen").textContent = "Änderungen übernehmen";
@@ -147,29 +214,36 @@
     var d = e.target.files[0]; e.target.value = "";
     if (!d) return;
     if (!/^image\//.test(d.type)){ WT.melden("Bitte eine Bilddatei auswählen.", true); return; }
-    Zuschnitt.oeffnen(d).then(function(url){
-      if (url){ formBild = url; formOriginal = d; vorschau(); }
+    /* Das verkleinerte Original wird mitgespeichert, damit der Ausschnitt später
+       ohne Qualitätsverlust neu gewählt werden kann. */
+    Zuschnitt.verkleinern(d, ORIGINAL_MAX).then(function(original){
+      return Zuschnitt.oeffnen(original).then(function(url){
+        if (url){ formBild = url; formOriginal = original; vorschau(); }
+      });
     }).catch(function(){ WT.melden("Das Bild konnte nicht gelesen werden.", true); });
   };
   $("k-ausschnitt").onclick = function(){
     Zuschnitt.oeffnen(formOriginal || formBild).then(function(url){ if (url){ formBild = url; vorschau(); } })
       .catch(function(){ WT.melden("Das Bild konnte nicht geöffnet werden.", true); });
   };
-  $("k-entfernen").onclick = function(){ formBild = ""; formOriginal = null; vorschau(); };
+  $("k-entfernen").onclick = function(){ formBild = ""; formOriginal = ""; vorschau(); };
 
   $("k-uebernehmen").onclick = function(){
     var titel = $("k-titel").value.trim(), link = $("k-link").value.trim();
     if (!titel){ WT.melden("Bitte einen Titel eingeben.", true); $("k-titel").focus(); return; }
     if (!link){ WT.melden("Bitte einen Link eingeben.", true); $("k-link").focus(); return; }
-    if (!/^[a-z][a-z0-9+.-]*:/i.test(link)) link = "https://" + link;
-    try { new URL(link); } catch(_){ WT.melden("Der Link ist ungültig.", true); $("k-link").focus(); return; }
+    if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(link)) link = "https://" + link;
+    if (!WT.linkErlaubt(link)){
+      WT.melden("Der Link ist ungültig. Erlaubt sind nur Adressen mit http:// oder https://.", true);
+      $("k-link").focus(); return;
+    }
 
     if (bearbeiteId){
       var k = cfg.kacheln.filter(function(x){ return x.id === bearbeiteId; })[0];
-      k.titel = titel; k.link = link; k.bild = formBild;
+      k.titel = titel; k.link = link; k.bild = formBild; k.original = formBild ? formOriginal : "";
       WT.melden("Kachel geändert. Zum Veröffentlichen „Speichern“ klicken.");
     } else {
-      cfg.kacheln.push({ id: "k" + Date.now().toString(36), titel: titel, link: link, bild: formBild });
+      cfg.kacheln.push({ id: WT.neueId(), titel: titel, link: link, bild: formBild, original: formBild ? formOriginal : "" });
       WT.melden("Kachel hinzugefügt. Zum Veröffentlichen „Speichern“ klicken.");
     }
     formLeeren(); aendern();
@@ -206,11 +280,17 @@
   };
 
   /* ---------- Speichern ---------- */
-  function json(){ return JSON.stringify(cfg, null, 2); }
+  /* Originale als Data-URL werden nicht in heruntergeladene Dateien geschrieben –
+     ohne Speicher-Handler würden sie kacheln.json nur unnötig aufblähen. */
+  function ohneEingebetteteOriginale(d){
+    return Object.assign({}, d, { kacheln: d.kacheln.map(function(k){
+      return /^data:/i.test(k.original) ? Object.assign({}, k, { original: "" }) : k;
+    }) });
+  }
 
   function herunterladen(){
     var a = document.createElement("a");
-    a.href = URL.createObjectURL(new Blob([json()], {type:"application/json"}));
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(ohneEingebetteteOriginale(cfg), null, 2)], {type:"application/json"}));
     a.download = "kacheln.json";
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function(){ URL.revokeObjectURL(a.href); }, 2000);
@@ -218,43 +298,96 @@
 
   function alsGespeichertMarkieren(){
     gespeichert = JSON.stringify(cfg);
-    try { localStorage.removeItem(ENTWURF); } catch(_){}
+    entwurfLoeschen();
     status();
   }
 
-  $("speichern").onclick = function(){
-    var b = this; b.disabled = true; b.textContent = "Wird gespeichert …";
-    fetch(SPEICHER_URL, { method:"POST", headers:{"Content-Type":"application/json; charset=utf-8"}, body: json(), credentials:"same-origin" })
+  /* Übernimmt den vom Server gespeicherten Stand (Bilder sind dort als Dateien abgelegt) */
+  function serverStandUebernehmen(daten){
+    var d = WT.normalisieren(daten);
+    basis = d.stand; delete d.stand;
+    cfg = d;
+    if (bearbeiteId && !cfg.kacheln.some(function(k){ return k.id === bearbeiteId; })) formLeeren();
+    WT.kopfAnwenden(cfg); liste(); seite();
+    alsGespeichertMarkieren();
+  }
+
+  function senden(ueberschreiben){
+    var kopf = { "Content-Type": "application/json; charset=utf-8", "X-Webtools": "1", "X-Webtools-Basis": basis };
+    if (ueberschreiben) kopf["X-Webtools-Ueberschreiben"] = "1";
+    if (passwort) kopf["X-Webtools-Passwort"] = encodeURIComponent(passwort);
+    return fetch(SPEICHER_URL, { method:"POST", headers:kopf, body: JSON.stringify(cfg), credentials:"same-origin" })
       .then(function(r){
-        if (r.ok) return "ok";
-        if (r.status === 413) throw new Error("Die Daten sind zu groß. Bitte weniger oder kleinere Bilder verwenden.");
-        if (r.status === 400 || r.status === 403){
-          return r.json().catch(function(){ return {}; }).then(function(d){
-            throw new Error(d.fehler || (r.status === 403 ? "Keine Berechtigung zum Speichern." : "Ungültige Daten."));
-          });
-        }
-        return "fehlt"; /* Handler nicht vorhanden oder nicht ausführbar */
-      })
-      .then(function(ergebnis){
-        if (ergebnis === "ok"){
-          alsGespeichertMarkieren();
-          WT.melden("Gespeichert. Die Übersicht zeigt jetzt den neuen Stand.");
-        } else {
-          herunterladen();
-          alsGespeichertMarkieren();
-          WT.melden("Direktes Speichern ist auf dem Server nicht eingerichtet. kacheln.json wurde heruntergeladen – bitte in den Ordner „daten“ kopieren.", true);
-        }
-      })
-      .catch(function(err){
-        WT.melden("Speichern fehlgeschlagen: " + err.message, true);
-      })
-      .then(function(){ b.textContent = "Speichern"; status(); });
-  };
+        return r.text().then(function(t){
+          var d = null; try { d = JSON.parse(t); } catch(_){}
+          return { status: r.status, ok: r.ok, d: d && typeof d === "object" ? d : {} };
+        });
+      });
+  }
+
+  function passwortAbfragen(text){
+    return new Promise(function(fertig){
+      var dlg = $("passwortdialog"), feld = $("p-passwort");
+      $("p-text").textContent = text;
+      feld.value = "";
+      dlg.returnValue = "";
+      dlg.onclose = function(){
+        dlg.onclose = null;
+        if (dlg.returnValue !== "ok" || !feld.value){ fertig(false); return; }
+        passwort = feld.value; feld.value = "";
+        try { sessionStorage.setItem(PASSWORT, passwort); } catch(_){}
+        fertig(true);
+      };
+      dlg.showModal();
+      feld.focus();
+    });
+  }
+  $("p-abbrechen").onclick = function(){ $("passwortdialog").close(""); };
+
+  function speichern(ueberschreiben){
+    var b = $("speichern"); b.disabled = true; b.textContent = "Wird gespeichert …";
+    return senden(ueberschreiben).then(function(a){
+      if (a.ok && a.d.ok === true){
+        serverStandUebernehmen(a.d.daten);
+        WT.melden("Gespeichert. Die Übersicht zeigt jetzt den neuen Stand.");
+        return;
+      }
+      /* Handler nicht vorhanden oder nicht ausführbar (z. B. ASP.NET nicht installiert) */
+      if (a.ok || a.status === 404 || a.status === 405 || a.status === 501){
+        cfg = ohneEingebetteteOriginale(cfg);
+        herunterladen();
+        alsGespeichertMarkieren();
+        WT.melden("Direktes Speichern ist auf dem Server nicht eingerichtet. kacheln.json wurde heruntergeladen – bitte in den Ordner „daten“ kopieren.", true);
+        return;
+      }
+      if (a.status === 409){
+        if (confirm("Die Übersicht wurde inzwischen von jemand anderem gespeichert.\n\n" +
+            "OK = trotzdem speichern und die andere Fassung überschreiben\n" +
+            "Abbrechen = nicht speichern")) return speichern(true);
+        WT.melden("Nicht gespeichert. Tipp: Mit „Datei herunterladen“ deine Fassung sichern, dann die Seite neu laden und die Änderungen erneut vornehmen.", true);
+        return;
+      }
+      if (a.status === 403 && a.d.grund === "passwort"){
+        passwort = "";
+        try { sessionStorage.removeItem(PASSWORT); } catch(_){}
+        return passwortAbfragen(a.d.fehler || "Zum Speichern ist ein Passwort nötig.").then(function(ok){
+          if (ok) return speichern(ueberschreiben);
+          WT.melden("Nicht gespeichert.", true);
+        });
+      }
+      if (a.status === 413) throw new Error("Die Daten sind zu groß. Bitte weniger oder kleinere Bilder verwenden.");
+      if (a.status === 401) throw new Error("Keine Berechtigung zum Speichern.");
+      throw new Error(a.d.fehler || "Der Server meldet Fehler " + a.status + ".");
+    }).catch(function(err){
+      WT.melden("Speichern fehlgeschlagen: " + err.message, true);
+    }).then(function(){ b.textContent = "Speichern"; status(); });
+  }
+  $("speichern").onclick = function(){ speichern(false); };
 
   $("verwerfen").onclick = function(){
     if (!confirm("Alle nicht gespeicherten Änderungen verwerfen?")) return;
     cfg = JSON.parse(gespeichert);
-    try { localStorage.removeItem(ENTWURF); } catch(_){}
+    entwurfLoeschen();
     alles();
     WT.melden("Änderungen verworfen.");
   };
@@ -266,10 +399,12 @@
     if (!d) return;
     d.text().then(function(t){
       var neu = JSON.parse(t);
-      if (!Array.isArray(neu.kacheln)) throw new Error();
-      cfg = { titel: neu.titel || "Webtools", einleitung: neu.einleitung || "", logo: neu.logo || "", kacheln: neu.kacheln };
+      if (!neu || !Array.isArray(neu.kacheln)) throw new Error();
+      cfg = WT.normalisieren(neu); delete cfg.stand;
       alles(); aendern();
-      WT.melden("Datei importiert. Zum Übernehmen „Speichern“ klicken.");
+      var ungueltig = cfg.kacheln.filter(function(k){ return !WT.linkErlaubt(k.link); }).length;
+      if (ungueltig) WT.melden("Datei importiert. " + ungueltig + " Kachel(n) haben einen ungültigen Link – bitte vor dem Speichern korrigieren.", true);
+      else WT.melden("Datei importiert. Zum Übernehmen „Speichern“ klicken.");
     }).catch(function(){ WT.melden("Die Datei ist keine gültige Kachel-Konfiguration.", true); });
   };
 })();

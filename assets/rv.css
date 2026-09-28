@@ -84,8 +84,8 @@ main{flex:1;width:100%;max-width:1240px;margin:0 auto;padding:44px 28px 64px}
 .knopf:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--rv-orange);outline-offset:2px}
 
 label{display:block;font-size:.875rem;font-weight:600;margin:16px 0 6px}
-input[type=text],input[type=url],textarea{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:8px;font:inherit;color:var(--text);background:var(--weiss)}
-input[type=text]:focus,input[type=url]:focus,textarea:focus{border-color:var(--rv-blau-mittel)}
+input[type=text],input[type=url],input[type=password],textarea{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:8px;font:inherit;color:var(--text);background:var(--weiss)}
+input[type=text]:focus,input[type=url]:focus,input[type=password]:focus,textarea:focus{border-color:var(--rv-blau-mittel)}
 textarea{resize:vertical;min-height:70px}
 .hinweis{font-size:.85rem;color:var(--text-leise);margin:6px 0 0}
 .versteckt{display:none !important}
@@ -96,6 +96,8 @@ textarea{resize:vertical;min-height:70px}
 .statustext{display:flex;align-items:center;gap:8px;font-size:.95rem;margin-right:auto}
 .punkt{width:10px;height:10px;border-radius:50%;background:var(--erfolg);flex-shrink:0}
 .punkt.offen{background:var(--rv-orange)}
+
+.serverhinweis{margin:0 0 28px;padding:12px 16px;border:1px solid var(--rv-orange);border-left-width:5px;border-radius:8px;background:#FFF4E6;font-size:.95rem}
 
 .einst-raster{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start}
 @media (max-width:920px){.einst-raster{grid-template-columns:1fr}}
@@ -109,7 +111,8 @@ textarea{resize:vertical;min-height:70px}
 .eintrag.aktiv{border-color:var(--rv-blau);background:var(--rv-blau-hell)}
 .eintrag.ziehen{opacity:.4}
 .eintrag.ziel{border-color:var(--rv-orange);box-shadow:0 0 0 2px rgba(240,125,0,.25)}
-.griff{cursor:grab;color:var(--text-leise);font-size:1.1rem;line-height:1;padding:4px;user-select:none}
+.griff{cursor:grab;color:var(--text-leise);font-size:1.1rem;line-height:1;padding:8px 6px;margin:-4px 0;user-select:none;-webkit-user-select:none;touch-action:none}
+.eintrag.ziehen .griff{cursor:grabbing}
 .mini{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--rv-blau-hell);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--rv-blau);font-weight:700}
 .eintrag .texte{flex:1;min-width:0}
 .eintrag .titel{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -126,13 +129,15 @@ textarea{resize:vertical;min-height:70px}
 .logovorschau{height:56px;min-width:120px;padding:8px 12px;border-radius:8px;background:var(--rv-blau);display:inline-flex;align-items:center;color:var(--rv-blau-text);font-size:.85rem}
 .logovorschau img{max-height:40px}
 
-/* ---------- Zuschnitt-Dialog ---------- */
-dialog.zuschnitt{border:none;border-radius:18px;padding:0;width:min(480px,94vw);box-shadow:0 24px 64px rgba(0,20,50,.35)}
-dialog.zuschnitt::backdrop{background:rgba(0,27,60,.6)}
-.zuschnitt .kopfzeile{background:var(--rv-blau);color:var(--weiss);padding:16px 22px}
-.zuschnitt .kopfzeile h3{margin:0;font-size:1.1rem}
+/* ---------- Dialoge (Zuschnitt, Passwort) ---------- */
+dialog.zuschnitt,dialog.fenster{border:none;border-radius:18px;padding:0;width:min(480px,94vw);box-shadow:0 24px 64px rgba(0,20,50,.35)}
+dialog.fenster{width:min(400px,94vw)}
+dialog.zuschnitt::backdrop,dialog.fenster::backdrop{background:rgba(0,27,60,.6)}
+.zuschnitt .kopfzeile,.fenster .kopfzeile{background:var(--rv-blau);color:var(--weiss);padding:16px 22px}
+.zuschnitt .kopfzeile h3,.fenster .kopfzeile h3{margin:0;font-size:1.1rem}
 .zuschnitt .kopfzeile p{margin:2px 0 0;font-size:.85rem;color:var(--rv-blau-text)}
-.zuschnitt .koerper{padding:20px 22px}
+.zuschnitt .koerper,.fenster .koerper{padding:20px 22px}
+.fenster .koerper .hinweis{margin:0}
 .buehne{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#0d1b2e;cursor:grab;touch-action:none}
 .buehne.aktiv{cursor:grabbing}
 .buehne canvas{width:100%;height:100%;display:block}
@@ -142,7 +147,7 @@ dialog.zuschnitt::backdrop{background:rgba(0,27,60,.6)}
 .zoomzeile{display:flex;align-items:center;gap:12px;margin-top:16px}
 .zoomzeile input{flex:1;accent-color:var(--rv-blau)}
 .zoomzeile span{color:var(--text-leise);font-size:1.15rem;width:18px;text-align:center;user-select:none}
-.zuschnitt .fuss{display:flex;justify-content:flex-end;gap:10px;padding:0 22px 20px}
+.zuschnitt .fuss,.fenster .fuss{display:flex;justify-content:flex-end;gap:10px;padding:0 22px 20px}
 
 .meldung{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
   background:var(--rv-blau-dunkel);color:var(--weiss);padding:12px 20px;border-radius:10px;box-shadow:var(--schatten-hoch);
