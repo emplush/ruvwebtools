@@ -1,0 +1,7 @@
+# Laufzeitdateien des Speicher-Handlers
+daten/kacheln.tmp
+daten/kacheln.vorher.json
+
+# System
+Thumbs.db
+.DS_Store

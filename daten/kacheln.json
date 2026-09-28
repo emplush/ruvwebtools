@@ -1,0 +1,10 @@
+{
+  "titel": "Webtools",
+  "einleitung": "Alle Werkzeuge an einem Ort. Ein Klick auf eine Kachel öffnet das Tool in einem neuen Fenster.",
+  "logo": "",
+  "kacheln": [
+    { "id": "k1", "titel": "Beispiel-Tool 1", "link": "https://www.ruv.de", "bild": "" },
+    { "id": "k2", "titel": "Beispiel-Tool 2", "link": "https://www.ruv.de", "bild": "" },
+    { "id": "k3", "titel": "Beispiel-Tool 3", "link": "https://www.ruv.de", "bild": "" }
+  ]
+}

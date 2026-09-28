@@ -1,0 +1,162 @@
+/* =====================================================================
+   Webtools-Übersicht – Gestaltung im R+V-Stil
+   Farbwerte bei Bedarf an das offizielle Brandbook angleichen.
+   ===================================================================== */
+:root{
+  --rv-blau:#003A7D;
+  --rv-blau-dunkel:#002B5C;
+  --rv-blau-mittel:#0B5CAD;
+  --rv-blau-hell:#E8F0F9;
+  --rv-blau-text:#B9CDE6;
+  --rv-orange:#F07D00;
+  --text:#1A2433;
+  --text-leise:#5B6778;
+  --linie:#DCE3EC;
+  --weiss:#FFFFFF;
+  --gefahr:#B3261E;
+  --erfolg:#1E7B3A;
+  --radius:14px;
+  --schatten:0 1px 2px rgba(0,43,92,.08),0 8px 24px rgba(0,43,92,.10);
+  --schatten-hoch:0 2px 4px rgba(0,43,92,.10),0 16px 36px rgba(0,43,92,.18);
+  /* Hausschrift eintragen, sobald per @font-face eingebunden */
+  --schrift:"RV Sans","Source Sans Pro","Segoe UI",Arial,Helvetica,sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--schrift);color:var(--text);background:var(--weiss);line-height:1.5;
+  min-height:100vh;display:flex;flex-direction:column;-webkit-font-smoothing:antialiased}
+img{max-width:100%}
+
+/* ---------- Kopf ---------- */
+.seitenkopf{background:var(--rv-blau);color:var(--weiss);box-shadow:inset 0 -5px 0 var(--rv-blau-dunkel)}
+.seitenkopf .innen{max-width:1240px;margin:0 auto;padding:18px 28px 23px;display:flex;align-items:center;gap:24px;min-height:84px}
+.logo{display:flex;align-items:center;height:48px}
+.logo img{max-height:48px;max-width:190px;display:block}
+.logo:empty{display:none}
+.seitenkopf h1{margin:0;font-size:1.5rem;font-weight:600;letter-spacing:.005em;line-height:1.2}
+.seitenkopf .unterzeile{display:block;font-size:.9rem;font-weight:400;color:var(--rv-blau-text)}
+.seitenkopf .aktionen{margin-left:auto;display:flex;gap:10px}
+
+/* ---------- Inhalt ---------- */
+main{flex:1;width:100%;max-width:1240px;margin:0 auto;padding:44px 28px 64px}
+.einleitung{margin:0 0 32px;color:var(--text-leise);font-size:1.05rem;max-width:62ch}
+
+/* ---------- Kacheln ---------- */
+.raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:28px}
+.kachel{position:relative;display:flex;flex-direction:column;background:var(--rv-blau);color:var(--weiss);
+  border-radius:var(--radius);overflow:hidden;text-decoration:none;box-shadow:var(--schatten);
+  transition:transform .18s ease,box-shadow .18s ease}
+.kachel::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--rv-orange);
+  transform:scaleX(0);transform-origin:left;transition:transform .22s ease}
+.kachel:hover{transform:translateY(-4px);box-shadow:var(--schatten-hoch)}
+.kachel:hover::after,.kachel:focus-visible::after{transform:scaleX(1)}
+.kachel:focus-visible{outline:3px solid var(--rv-orange);outline-offset:3px}
+.kachel .bild{aspect-ratio:1/1;background:var(--rv-blau-hell);display:flex;align-items:center;justify-content:center;overflow:hidden}
+.kachel .bild img{width:100%;height:100%;object-fit:cover;display:block}
+.initiale{font-size:4rem;font-weight:700;color:var(--rv-blau);opacity:.35;line-height:1}
+.kachel .inhalt{display:flex;align-items:flex-start;gap:10px;padding:14px 16px 18px}
+.kachel .texte{flex:1;min-width:0}
+.kachel h2{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3}
+.kachel .url{display:block;margin-top:2px;font-size:.8rem;color:var(--rv-blau-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.kachel .extern{flex-shrink:0;width:18px;height:18px;margin-top:2px;opacity:.7}
+.leer{padding:56px 24px;text-align:center;color:var(--text-leise);border:1px dashed var(--linie);border-radius:var(--radius)}
+
+/* ---------- Fuß ---------- */
+.seitenfuss{background:var(--rv-blau-dunkel);color:rgba(255,255,255,.8);font-size:.875rem}
+.seitenfuss .innen{max-width:1240px;margin:0 auto;padding:20px 28px;display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between;user-select:none;-webkit-user-select:none}
+
+/* ---------- Bedienelemente ---------- */
+.knopf{font:inherit;font-size:.95rem;font-weight:600;cursor:pointer;border-radius:8px;padding:9px 16px;
+  border:1px solid var(--rv-blau);background:var(--weiss);color:var(--rv-blau);text-decoration:none;
+  display:inline-flex;align-items:center;gap:8px;transition:background .15s,color .15s,border-color .15s}
+.knopf:hover{background:var(--rv-blau-hell)}
+.knopf.primaer{background:var(--rv-blau);color:var(--weiss)}
+.knopf.primaer:hover{background:var(--rv-blau-mittel);border-color:var(--rv-blau-mittel)}
+.knopf.akzent{background:var(--rv-orange);border-color:var(--rv-orange);color:var(--weiss)}
+.knopf.akzent:hover{background:#D86F00;border-color:#D86F00}
+.knopf.hell{background:transparent;border-color:rgba(255,255,255,.55);color:var(--weiss)}
+.knopf.hell:hover{background:rgba(255,255,255,.12)}
+.knopf.gefahr{border-color:var(--gefahr);color:var(--gefahr)}
+.knopf.gefahr:hover{background:#FBECEB}
+.knopf.klein{padding:6px 10px;font-size:.85rem;font-weight:500}
+.knopf.symbol{padding:6px 9px;min-width:34px;justify-content:center}
+.knopf:disabled{opacity:.45;cursor:default}
+.knopf:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--rv-orange);outline-offset:2px}
+
+label{display:block;font-size:.875rem;font-weight:600;margin:16px 0 6px}
+input[type=text],input[type=url],textarea{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:8px;font:inherit;color:var(--text);background:var(--weiss)}
+input[type=text]:focus,input[type=url]:focus,textarea:focus{border-color:var(--rv-blau-mittel)}
+textarea{resize:vertical;min-height:70px}
+.hinweis{font-size:.85rem;color:var(--text-leise);margin:6px 0 0}
+.versteckt{display:none !important}
+
+/* ---------- Einstellungen ---------- */
+.statusleiste{position:sticky;top:0;z-index:20;background:var(--weiss);border-bottom:1px solid var(--linie)}
+.statusleiste .innen{max-width:1240px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.statustext{display:flex;align-items:center;gap:8px;font-size:.95rem;margin-right:auto}
+.punkt{width:10px;height:10px;border-radius:50%;background:var(--erfolg);flex-shrink:0}
+.punkt.offen{background:var(--rv-orange)}
+
+.einst-raster{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:28px;align-items:start}
+@media (max-width:920px){.einst-raster{grid-template-columns:1fr}}
+.feld{background:var(--weiss);border:1px solid var(--linie);border-radius:var(--radius);padding:24px}
+.feld + .feld{margin-top:28px}
+.feld h2{margin:0;font-size:1.2rem;color:var(--rv-blau)}
+.feldkopf{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+
+.liste{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.eintrag{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid var(--linie);border-radius:10px;background:var(--weiss);transition:border-color .15s,background .15s}
+.eintrag.aktiv{border-color:var(--rv-blau);background:var(--rv-blau-hell)}
+.eintrag.ziehen{opacity:.4}
+.eintrag.ziel{border-color:var(--rv-orange);box-shadow:0 0 0 2px rgba(240,125,0,.25)}
+.griff{cursor:grab;color:var(--text-leise);font-size:1.1rem;line-height:1;padding:4px;user-select:none}
+.mini{width:48px;height:48px;border-radius:8px;object-fit:cover;background:var(--rv-blau-hell);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--rv-blau);font-weight:700}
+.eintrag .texte{flex:1;min-width:0}
+.eintrag .titel{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eintrag .url{font-size:.8rem;color:var(--text-leise);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eintrag .knoepfe{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:560px){.eintrag{flex-wrap:wrap}.eintrag .knoepfe{width:100%}}
+
+.bildfeld{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
+.bildvorschau{width:140px;height:140px;border-radius:12px;background:var(--rv-blau-hell);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--linie);color:var(--text-leise);font-size:.85rem;text-align:center;padding:0}
+.bildvorschau img{width:100%;height:100%;object-fit:cover}
+.bildknoepfe{display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.formfuss{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px;padding-top:20px;border-top:1px solid var(--linie)}
+
+.logovorschau{height:56px;min-width:120px;padding:8px 12px;border-radius:8px;background:var(--rv-blau);display:inline-flex;align-items:center;color:var(--rv-blau-text);font-size:.85rem}
+.logovorschau img{max-height:40px}
+
+/* ---------- Zuschnitt-Dialog ---------- */
+dialog.zuschnitt{border:none;border-radius:18px;padding:0;width:min(480px,94vw);box-shadow:0 24px 64px rgba(0,20,50,.35)}
+dialog.zuschnitt::backdrop{background:rgba(0,27,60,.6)}
+.zuschnitt .kopfzeile{background:var(--rv-blau);color:var(--weiss);padding:16px 22px}
+.zuschnitt .kopfzeile h3{margin:0;font-size:1.1rem}
+.zuschnitt .kopfzeile p{margin:2px 0 0;font-size:.85rem;color:var(--rv-blau-text)}
+.zuschnitt .koerper{padding:20px 22px}
+.buehne{position:relative;width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:#0d1b2e;cursor:grab;touch-action:none}
+.buehne.aktiv{cursor:grabbing}
+.buehne canvas{width:100%;height:100%;display:block}
+.buehne .drittel{position:absolute;inset:0;pointer-events:none;border-radius:12px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.85);
+  background-image:linear-gradient(90deg,transparent calc(33.333% - .5px),rgba(255,255,255,.4) calc(33.333% - .5px),rgba(255,255,255,.4) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.4) calc(66.666% - .5px),rgba(255,255,255,.4) calc(66.666% + .5px),transparent calc(66.666% + .5px)),
+  linear-gradient(transparent calc(33.333% - .5px),rgba(255,255,255,.4) calc(33.333% - .5px),rgba(255,255,255,.4) calc(33.333% + .5px),transparent calc(33.333% + .5px),transparent calc(66.666% - .5px),rgba(255,255,255,.4) calc(66.666% - .5px),rgba(255,255,255,.4) calc(66.666% + .5px),transparent calc(66.666% + .5px))}
+.zoomzeile{display:flex;align-items:center;gap:12px;margin-top:16px}
+.zoomzeile input{flex:1;accent-color:var(--rv-blau)}
+.zoomzeile span{color:var(--text-leise);font-size:1.15rem;width:18px;text-align:center;user-select:none}
+.zuschnitt .fuss{display:flex;justify-content:flex-end;gap:10px;padding:0 22px 20px}
+
+.meldung{position:fixed;left:50%;bottom:28px;transform:translateX(-50%) translateY(20px);opacity:0;pointer-events:none;
+  background:var(--rv-blau-dunkel);color:var(--weiss);padding:12px 20px;border-radius:10px;box-shadow:var(--schatten-hoch);
+  max-width:90vw;z-index:1000;transition:opacity .2s,transform .2s}
+.meldung.sichtbar{opacity:1;transform:translateX(-50%) translateY(0)}
+.meldung.fehler{background:var(--gefahr)}
+
+@media (max-width:600px){
+  .seitenkopf h1{font-size:1.2rem}
+  main{padding:28px 18px 48px}
+  .seitenkopf .innen,.seitenfuss .innen,.statusleiste .innen{padding-left:18px;padding-right:18px}
+  .raster{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px}
+}
+@media (prefers-reduced-motion:reduce){
+  .kachel,.kachel::after,.meldung{transition:none}
+  .kachel:hover{transform:none}
+}
