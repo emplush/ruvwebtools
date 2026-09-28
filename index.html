@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Webtools</title>
+<link rel="stylesheet" href="assets/rv.css">
+</head>
+<body>
+<header class="seitenkopf">
+  <div class="innen">
+    <div class="logo" id="logo"></div>
+    <h1 id="seitentitel">Webtools</h1>
+    <div class="aktionen"><a class="knopf hell" href="einstellungen.html">Anpassen</a></div>
+  </div>
+</header>
+
+<main>
+  <p class="einleitung" id="einleitung"></p>
+  <div class="raster" id="raster" aria-live="polite"></div>
+</main>
+
+<footer class="seitenfuss">
+  <div class="innen" id="fusszeile">
+    <span>© <span id="jahr"></span> R+V Versicherung AG</span>
+  </div>
+</footer>
+
+<div class="meldung" id="meldung" role="status"></div>
+
+<script src="assets/gemeinsam.js"></script>
+<script>
+(function(){
+  var raster = document.getElementById("raster");
+
+  WT.laden().then(function(cfg){
+    WT.kopfAnwenden(cfg);
+    document.title = cfg.titel;
+    document.getElementById("einleitung").textContent = cfg.einleitung;
+    raster.innerHTML = cfg.kacheln.length
+      ? cfg.kacheln.map(WT.kachelHtml).join("")
+      : '<div class="leer">Hier erscheinen bald die ersten Tools.</div>';
+  }).catch(function(){
+    WT.kopfAnwenden(WT.STANDARD);
+    raster.innerHTML = '<div class="leer">Die Kacheln konnten nicht geladen werden. Bitte die Seite über den Webserver aufrufen und prüfen, ob daten/kacheln.json vorhanden ist.</div>';
+  });
+
+  /* Zusätzliche Wege zu den Einstellungen (neben dem Knopf „Anpassen“) */
+  function einstellungen(){ location.href = "einstellungen.html"; }
+  document.addEventListener("keydown", function(e){
+    if (e.ctrlKey && e.altKey && e.key && e.key.toLowerCase() === "m"){ e.preventDefault(); einstellungen(); }
+  });
+  var klicks = 0, timer;
+  document.getElementById("fusszeile").addEventListener("click", function(){
+    klicks++; clearTimeout(timer);
+    timer = setTimeout(function(){ klicks = 0; }, 1500);
+    if (klicks >= 5) einstellungen();
+  });
+  if (location.hash === "#einstellungen") einstellungen();
+})();
+</script>
+</body>
+</html>

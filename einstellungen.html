@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Einstellungen – Webtools</title>
+<link rel="stylesheet" href="assets/rv.css">
+</head>
+<body>
+<header class="seitenkopf">
+  <div class="innen">
+    <div class="logo" id="logo"></div>
+    <h1>Einstellungen<span class="unterzeile" id="seitentitel">Webtools</span></h1>
+    <div class="aktionen"><a class="knopf hell" href="index.html">Zur Übersicht</a></div>
+  </div>
+</header>
+
+<div class="statusleiste">
+  <div class="innen">
+    <div class="statustext"><span class="punkt" id="punkt"></span><span id="statustext">Wird geladen …</span></div>
+    <button class="knopf klein" id="verwerfen" disabled>Änderungen verwerfen</button>
+    <button class="knopf klein" id="export">Datei herunterladen</button>
+    <button class="knopf klein" id="import">Datei importieren</button>
+    <input type="file" id="importdatei" accept=".json,application/json" hidden>
+    <button class="knopf akzent" id="speichern" disabled>Speichern</button>
+  </div>
+</div>
+
+<main>
+  <p class="serverhinweis versteckt" id="serverhinweis" role="note"></p>
+  <div class="einst-raster">
+    <div>
+      <section class="feld" aria-labelledby="h-kacheln">
+        <div class="feldkopf">
+          <h2 id="h-kacheln">Kacheln</h2>
+          <button class="knopf primaer klein" id="neu">Kachel hinzufügen</button>
+        </div>
+        <p class="hinweis" style="margin:0 0 14px">Reihenfolge per Ziehen am Griff oder mit den Pfeilen ändern. So erscheinen die Kacheln auch auf der Übersicht.</p>
+        <ul class="liste" id="liste"></ul>
+      </section>
+
+      <section class="feld" aria-labelledby="h-seite">
+        <h2 id="h-seite">Seite</h2>
+        <label for="s-titel">Seitentitel</label>
+        <input type="text" id="s-titel" maxlength="80">
+        <label for="s-einleitung">Einleitungstext</label>
+        <textarea id="s-einleitung" maxlength="300"></textarea>
+        <label>Logo</label>
+        <div class="bildfeld">
+          <div class="logovorschau" id="logovorschau">Kein Logo</div>
+          <div class="bildknoepfe">
+            <button class="knopf klein" id="logo-hochladen">Logo hochladen</button>
+            <button class="knopf klein gefahr" id="logo-entfernen">Logo entfernen</button>
+            <input type="file" id="logodatei" accept="image/*" hidden>
+          </div>
+        </div>
+        <p class="hinweis">Bitte die offizielle Logodatei (am besten weiß, als SVG oder PNG) verwenden.</p>
+      </section>
+    </div>
+
+    <section class="feld" aria-labelledby="h-editor" id="editor">
+      <h2 id="h-editor">Neue Kachel</h2>
+      <label for="k-titel">Titel</label>
+      <input type="text" id="k-titel" maxlength="60" placeholder="z. B. Schadenrechner">
+      <label for="k-link">Link</label>
+      <input type="url" id="k-link" placeholder="https://…">
+      <label>Bild</label>
+      <div class="bildfeld">
+        <div class="bildvorschau" id="k-vorschau">Kein Bild</div>
+        <div class="bildknoepfe">
+          <button class="knopf klein" id="k-hochladen">Bild hochladen</button>
+          <button class="knopf klein" id="k-ausschnitt" disabled>Ausschnitt ändern</button>
+          <button class="knopf klein gefahr" id="k-entfernen" disabled>Bild entfernen</button>
+          <input type="file" id="k-datei" accept="image/*" hidden>
+        </div>
+      </div>
+      <p class="hinweis">Das Bild wird quadratisch angezeigt. Nach dem Hochladen wählst du den Ausschnitt.</p>
+      <div class="formfuss">
+        <button class="knopf primaer" id="k-uebernehmen">Kachel hinzufügen</button>
+        <button class="knopf" id="k-abbrechen">Abbrechen</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="seitenfuss">
+  <div class="innen"><span>© <span id="jahr"></span> R+V Versicherung AG</span></div>
+</footer>
+
+<dialog class="zuschnitt" id="zuschnitt" aria-labelledby="z-titel">
+  <div class="kopfzeile">
+    <h3 id="z-titel">Bildausschnitt wählen</h3>
+    <p>Bild verschieben und mit dem Regler zoomen.</p>
+  </div>
+  <div class="koerper">
+    <div class="buehne" id="buehne" tabindex="0" aria-label="Bildausschnitt. Mit Pfeiltasten verschieben, mit Plus und Minus zoomen.">
+      <canvas id="z-canvas"></canvas>
+      <div class="drittel"></div>
+    </div>
+    <div class="zoomzeile">
+      <span aria-hidden="true">−</span>
+      <input type="range" id="z-zoom" min="1" max="4" step="0.01" value="1" aria-label="Zoom">
+      <span aria-hidden="true">+</span>
+    </div>
+  </div>
+  <div class="fuss">
+    <button class="knopf" id="z-abbrechen">Abbrechen</button>
+    <button class="knopf primaer" id="z-ok">Ausschnitt übernehmen</button>
+  </div>
+</dialog>
+
+<dialog class="fenster" id="frage" aria-labelledby="f-titel">
+  <form method="dialog">
+    <div class="kopfzeile">
+      <h3 id="f-titel">Bitte bestätigen</h3>
+    </div>
+    <div class="koerper">
+      <p class="fragetext" id="f-text"></p>
+    </div>
+    <div class="fuss">
+      <button type="submit" class="knopf" value="abbrechen" id="f-abbrechen">Abbrechen</button>
+      <button type="submit" class="knopf primaer" value="ok" id="f-ok">OK</button>
+    </div>
+  </form>
+</dialog>
+
+
+<div class="meldung" id="meldung" role="status"></div>
+
+<script src="assets/gemeinsam.js"></script>
+<script src="assets/zuschnitt.js"></script>
+<script src="assets/einstellungen.js"></script>
+</body>
+</html>
