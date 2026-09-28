@@ -2,7 +2,7 @@
 
 ## Inhalt
 - `index.html` – Übersicht mit den Kacheln
-- `einstellungen.html` – Verwaltung (nicht verlinkt)
+- `einstellungen.html` – Verwaltung (Knopf „Anpassen“ oben rechts auf der Übersicht)
 - `assets/` – Gestaltung und Skripte
 - `daten/kacheln.json` – alle Kacheln und Seitentexte (keine Datenbank nötig)
 - `daten/bilder/` – Kachelbilder und Logo; wird beim ersten Speichern automatisch angelegt
@@ -33,10 +33,11 @@ merkt es sich, bis der Browser-Tab geschlossen wird. Die `web.config` wird von I
 einkommentieren und die Gruppe anpassen. Voraussetzung: In IIS sind die Rolle
 „URL-Autorisierung“ installiert und für die Site „Windows-Authentifizierung“ aktiviert.
 
-Beides lässt sich auch kombinieren. Das Verstecken der Einstellungen (siehe unten) ist
-dagegen kein Schutz.
+Beides lässt sich auch kombinieren. Da die Einstellungen über den Knopf „Anpassen“ für alle
+erreichbar sind, ist einer der beiden Schutzwege dringend zu empfehlen.
 
 ## Einstellungen öffnen
+- Knopf **„Anpassen“** oben rechts auf der Übersicht
 - Tastenkürzel **Strg + Alt + M** auf der Übersicht
 - **5× schnell** auf die Fußzeile klicken
 - oder direkt `einstellungen.html` aufrufen

@@ -11,6 +11,7 @@
   <div class="innen">
     <div class="logo" id="logo"></div>
     <h1 id="seitentitel">Webtools</h1>
+    <div class="aktionen"><a class="knopf hell" href="einstellungen.html">Anpassen</a></div>
   </div>
 </header>
 
@@ -44,7 +45,7 @@
     raster.innerHTML = '<div class="leer">Die Kacheln konnten nicht geladen werden. Bitte die Seite über den Webserver aufrufen und prüfen, ob daten/kacheln.json vorhanden ist.</div>';
   });
 
-  /* Versteckter Zugang zu den Einstellungen */
+  /* Zusätzliche Wege zu den Einstellungen (neben dem Knopf „Anpassen“) */
   function einstellungen(){ location.href = "einstellungen.html"; }
   document.addEventListener("keydown", function(e){
     if (e.ctrlKey && e.altKey && e.key && e.key.toLowerCase() === "m"){ e.preventDefault(); einstellungen(); }
