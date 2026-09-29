@@ -57,13 +57,12 @@
   /* Bringt geladene oder importierte Daten in eine einheitliche Form */
   function normalisieren(d){
     d = d && typeof d === "object" ? d : {};
-    var kategorien = kategorienNormalisieren(d.kategorien);
+    var roh = (Array.isArray(d.kacheln) ? d.kacheln : []).filter(function(k){ return k && typeof k === "object"; });
+    var kategorien = kategorienNormalisieren(d.kategorien, roh.length > 0);
     var gueltig = {};
     kategorien.forEach(function(k){ gueltig[k.id] = true; });
     var ids = {};
-    var kacheln = (Array.isArray(d.kacheln) ? d.kacheln : []).filter(function(k){
-      return k && typeof k === "object";
-    }).map(function(k){
+    var kacheln = roh.map(function(k){
       var id = typeof k.id === "string" && k.id && !ids[k.id] ? k.id : neueId();
       ids[id] = true;
       var art = k.art === "chip" ? "chip" : "kachel";
@@ -88,9 +87,9 @@
     };
   }
 
-  /* Gespeicherte Kategorien übernehmen; fehlen sie (ältere Dateien), gelten die Standard-Kategorien.
-     Es bleibt immer mindestens eine Kategorie. */
-  function kategorienNormalisieren(liste){
+  /* Gespeicherte Kategorien übernehmen. Ältere Dateien ohne Kategorien erhalten die Standard-Kategorien.
+     Eine leere Liste ist erlaubt, solange es keine Einträge gibt (Einträge brauchen eine Kategorie). */
+  function kategorienNormalisieren(liste, hatEintraege){
     var ids = {}, erg = [];
     (Array.isArray(liste) ? liste : []).forEach(function(k){
       if (!k || typeof k !== "object" || !katIdGueltig(k.id) || ids[k.id]) return;
@@ -103,7 +102,8 @@
         farbe: farbeGueltig(k.farbe) ? k.farbe.toUpperCase() : (standard ? standard.farbe : naechsteFarbe(erg))
       });
     });
-    return erg.length ? erg : KATEGORIEN.map(function(s){ return { id: s.id, name: s.name, farbe: s.farbe }; });
+    if (erg.length || (Array.isArray(liste) && !hatEintraege)) return erg;
+    return KATEGORIEN.map(function(s){ return { id: s.id, name: s.name, farbe: s.farbe }; });
   }
 
   function katIdGueltig(id){ return typeof id === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(id); }

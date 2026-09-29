@@ -102,8 +102,7 @@
     if (!cfg.kategorien.every(function(k){ return $("kn-" + k.id); }) || $("kategorien").children.length !== cfg.kategorien.length) return;
     cfg.kategorien.forEach(function(kat){
       var zeile = $("kategorien").querySelector('[data-id="' + kat.id + '"]'), n = anzahlEintraege(kat.id);
-      var sperre = n ? "Erst alle Kacheln und Chips dieser Kategorie entfernen oder in eine andere Kategorie verschieben."
-        : cfg.kategorien.length === 1 ? "Mindestens eine Kategorie muss bestehen bleiben." : "";
+      var sperre = n ? "Erst alle Kacheln und Chips dieser Kategorie entfernen oder in eine andere Kategorie verschieben." : "";
       var b = zeile.querySelector("[data-a=katdel]");
       b.disabled = !!sperre;
       if (sperre) b.title = sperre; else b.removeAttribute("title");
@@ -143,6 +142,10 @@
   }
 
   function liste(){
+    if (!cfg.kategorien.length){
+      $("liste").innerHTML = '<p class="gruppe-leer">Noch keine Kategorie. Lege rechts unter „Kategorien“ die erste an, danach kannst du Kacheln und Chips hinzufügen.</p>';
+      return;
+    }
     $("liste").innerHTML = cfg.kategorien.map(function(kat){
       var teile = ["kachel", "chip"].map(function(art){
         var eintraege = [];
@@ -235,12 +238,10 @@
   function anzahlEintraege(id){ return cfg.kacheln.filter(function(k){ return k.kategorie === id; }).length; }
 
   function kategorienAnzeigen(){
-    var nurEine = cfg.kategorien.length === 1;
     var letzte = cfg.kategorien.length - 1;
     $("kategorien").innerHTML = cfg.kategorien.map(function(kat, i){
       var n = anzahlEintraege(kat.id);
-      var sperre = n ? "Erst alle Kacheln und Chips dieser Kategorie entfernen oder in eine andere Kategorie verschieben."
-        : nurEine ? "Mindestens eine Kategorie muss bestehen bleiben." : "";
+      var sperre = n ? "Erst alle Kacheln und Chips dieser Kategorie entfernen oder in eine andere Kategorie verschieben." : "";
       return '<div class="katzeile" data-id="' + kat.id + '">' +
         '<input type="text" class="katprobe katname" id="kn-' + kat.id + '" value="' + WT.esc(kat.name) + '" maxlength="40" style="' + WT.farbStil(kat) + '" aria-label="Name der Kategorie">' +
         '<input type="color" id="kf-' + kat.id + '" value="' + kat.farbe.toLowerCase() + '" aria-label="Farbton ' + WT.esc(kat.name) + '">' +
@@ -250,14 +251,18 @@
         '<button type="button" class="knopf klein gefahr" data-a="katdel"' + (sperre ? ' disabled title="' + WT.esc(sperre) + '"' : '') + '>Entfernen</button>' +
         '<span class="katanzahl">' + (n === 0 ? "keine Einträge" : n === 1 ? "1 Eintrag" : n + " Einträge") + '</span>' +
       '</div>';
-    }).join("");
+    }).join("") || '<p class="gruppe-leer">Noch keine Kategorie angelegt.</p>';
     kategorieOptionen();
   }
   /* Auswahlliste im Formular mit den aktuellen Kategorien füllen, Auswahl beibehalten */
   function kategorieOptionen(){
-    var sel = $("k-kategorie"), wert = sel.value;
-    sel.innerHTML = cfg.kategorien.map(function(k){ return '<option value="' + k.id + '">' + WT.esc(k.name) + '</option>'; }).join("");
-    sel.value = katVon(wert) ? wert : cfg.kategorien[0].id;
+    var sel = $("k-kategorie"), wert = sel.value, leer = !cfg.kategorien.length;
+    sel.innerHTML = leer ? '<option value="">Zuerst eine Kategorie anlegen</option>'
+      : cfg.kategorien.map(function(k){ return '<option value="' + k.id + '">' + WT.esc(k.name) + '</option>'; }).join("");
+    sel.value = katVon(wert) ? wert : leer ? "" : cfg.kategorien[0].id;
+    sel.disabled = leer;
+    $("k-uebernehmen").disabled = leer;
+    $("k-ohne-kategorie").hidden = !leer;
   }
   /* Übernimmt geänderten Namen/Farbton und aktualisiert die Zeile, ohne das gerade bearbeitete Feld zu stören */
   function katAktualisieren(kat){
@@ -307,7 +312,7 @@
   $("kategorien").addEventListener("click", function(e){
     var b = e.target.closest("[data-a=katdel]"); if (!b || b.disabled) return;
     var kat = katVon(b.closest(".katzeile").dataset.id);
-    if (anzahlEintraege(kat.id) || cfg.kategorien.length < 2) return;
+    if (anzahlEintraege(kat.id)) return;
     bestaetigen({ titel: "Kategorie entfernen", text: "Die Kategorie „" + kat.name + "“ wird entfernt.", ok: "Entfernen", gefahr: true })
       .then(function(ok){
         if (!ok || anzahlEintraege(kat.id)) return;
@@ -346,7 +351,7 @@
     bearbeiteId = null; formBild = ""; formOriginal = "";
     $("k-titel").value = ""; $("k-link").value = "";
     $("k-art-kachel").checked = true;
-    $("k-kategorie").value = cfg.kategorien[0].id;
+    $("k-kategorie").value = cfg.kategorien.length ? cfg.kategorien[0].id : "";
     formTexte(); vorschau(); liste();
   }
 
@@ -386,6 +391,7 @@
   $("k-uebernehmen").onclick = function(){
     var titel = $("k-titel").value.trim(), link = $("k-link").value.trim();
     var art = formArt(), kategorie = $("k-kategorie").value;
+    if (!katVon(kategorie)){ WT.melden("Bitte zuerst unter „Kategorien“ eine Kategorie anlegen.", true); return; }
     if (!titel){ WT.melden("Bitte einen Titel eingeben.", true); $("k-titel").focus(); return; }
     if (!link){ WT.melden("Bitte einen Link eingeben.", true); $("k-link").focus(); return; }
     if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(link)) link = "https://" + link;

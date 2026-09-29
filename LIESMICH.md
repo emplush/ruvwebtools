@@ -38,7 +38,7 @@ Soll nur eine bestimmte Gruppe ändern dürfen, den vorbereiteten Block am Ende 
   Einträge werden auf der Übersicht ausgeblendet.
 - In den Einstellungen unter „Kategorien“ lassen sich Kategorien **hinzufügen** (neue kommen
   ans Ende), mit den Pfeilen **umsortieren** und **entfernen**. Entfernen geht erst, wenn die Kategorie keine Kacheln und Chips
-  mehr enthält; eine Kategorie muss immer bestehen bleiben.
+  mehr enthält. Gibt es gar keine Kategorie, lässt sich über „Kategorie hinzufügen“ die erste anlegen.
 - **Kacheln** haben ein quadratisches Bild und darunter den Titel im Farbton der Kategorie.
   Passen nicht alle in die Reihe, lässt sie sich waagerecht blättern.
 - **Chips** sind schmale, abgerundete Einträge ohne Bild. Sie stehen rechts neben den Kacheln
@@ -65,6 +65,11 @@ Soll nur eine bestimmte Gruppe ändern dürfen, den vorbereiteten Block am Ende 
 ## Aktualisieren
 Beim Einspielen einer neuen Version den Ordner `daten` **nicht** überschreiben – er enthält
 die aktuellen Kacheln und Bilder.
+
+Die Seiten binden Skripte und Styles mit einer Versionsnummer ein (`?v=…`), und die `web.config`
+lässt den Browser HTML, CSS und JavaScript bei jedem Aufruf kurz beim Server prüfen. So mischt
+der Browser nach einem Update keine alten Skripte mit neuen Seiten. Wer von einer Version vor
+dieser Regel aktualisiert, lädt die Einstellungsseite einmal mit **Strg + F5** neu.
 
 ## Anpassungen
 - Farben und Schrift: oben in `assets/rv.css` unter `:root`

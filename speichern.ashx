@@ -81,13 +81,13 @@ public class KachelnSpeichern : IHttpHandler
                     throw new Fehler(409, "Die Übersicht wurde inzwischen von jemand anderem gespeichert.", "konflikt");
 
                 Directory.CreateDirectory(bildordner);
-                // Kategorien prüfen: eindeutige Kennung, Farbton nur #RRGGBB (landet im Stil-Attribut)
+                // Kategorien prüfen: eindeutige Kennung, Farbton nur #RRGGBB (landet im Stil-Attribut).
+                // Jeder Eintrag muss zu einer vorhandenen Kategorie gehören; ohne Einträge darf die Liste leer sein.
                 HashSet<string> katIds = null;
                 object kategorien;
                 if (daten.TryGetValue("kategorien", out kategorien))
                 {
-                    if (!(kategorien is object[]) || ((object[])kategorien).Length == 0)
-                        throw new Fehler(400, "Es muss mindestens eine Kategorie geben", "daten");
+                    if (!(kategorien is object[])) throw new Fehler(400, "Ungültige Kategorien", "daten");
                     katIds = new HashSet<string>();
                     foreach (object o in (object[])kategorien)
                     {
