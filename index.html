@@ -17,7 +17,7 @@
 
 <main>
   <p class="einleitung" id="einleitung"></p>
-  <div class="raster" id="raster" aria-live="polite"></div>
+  <div class="uebersicht" id="uebersicht" aria-live="polite"></div>
 </main>
 
 <footer class="seitenfuss">
@@ -31,18 +31,17 @@
 <script src="assets/gemeinsam.js"></script>
 <script>
 (function(){
-  var raster = document.getElementById("raster");
+  var uebersicht = document.getElementById("uebersicht");
 
   WT.laden().then(function(cfg){
     WT.kopfAnwenden(cfg);
     document.title = cfg.titel;
     document.getElementById("einleitung").textContent = cfg.einleitung;
-    raster.innerHTML = cfg.kacheln.length
-      ? cfg.kacheln.map(WT.kachelHtml).join("")
-      : '<div class="leer">Hier erscheinen bald die ersten Tools.</div>';
+    uebersicht.innerHTML = WT.uebersichtHtml(cfg);
+    WT.reihenAktivieren(uebersicht);
   }).catch(function(){
     WT.kopfAnwenden(WT.STANDARD);
-    raster.innerHTML = '<div class="leer">Die Kacheln konnten nicht geladen werden. Bitte die Seite über den Webserver aufrufen und prüfen, ob daten/kacheln.json vorhanden ist.</div>';
+    uebersicht.innerHTML = '<div class="leer">Die Kacheln konnten nicht geladen werden. Bitte die Seite über den Webserver aufrufen und prüfen, ob daten/kacheln.json vorhanden ist.</div>';
   });
 
   /* Zusätzliche Wege zu den Einstellungen (neben dem Knopf „Anpassen“) */

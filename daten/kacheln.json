@@ -1,10 +1,168 @@
 {
   "titel": "Webtools",
-  "einleitung": "Alle Werkzeuge an einem Ort. Ein Klick auf eine Kachel öffnet das Tool in einem neuen Fenster.",
+  "einleitung": "Alle Werkzeuge an einem Ort. Ein Klick auf eine Kachel oder einen Chip öffnet das Tool in einem neuen Fenster.",
   "logo": "",
+  "kategorien": [
+    {
+      "id": "elearning",
+      "name": "E-Learning",
+      "farbe": "#003A7D"
+    },
+    {
+      "id": "lms",
+      "name": "LMS",
+      "farbe": "#00787A"
+    },
+    {
+      "id": "idd",
+      "name": "IDD",
+      "farbe": "#7A3E9D"
+    }
+  ],
   "kacheln": [
-    { "id": "k1", "titel": "Beispiel-Tool 1", "link": "https://www.ruv.de", "bild": "" },
-    { "id": "k2", "titel": "Beispiel-Tool 2", "link": "https://www.ruv.de", "bild": "" },
-    { "id": "k3", "titel": "Beispiel-Tool 3", "link": "https://www.ruv.de", "bild": "" }
+    {
+      "id": "k1",
+      "art": "kachel",
+      "kategorie": "elearning",
+      "titel": "Beispiel E-Learning 1",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "k2",
+      "art": "kachel",
+      "kategorie": "elearning",
+      "titel": "Beispiel E-Learning 2",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "k3",
+      "art": "kachel",
+      "kategorie": "elearning",
+      "titel": "Beispiel E-Learning 3",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "k4",
+      "art": "kachel",
+      "kategorie": "elearning",
+      "titel": "Beispiel E-Learning 4",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "k5",
+      "art": "kachel",
+      "kategorie": "elearning",
+      "titel": "Beispiel E-Learning 5",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "c1",
+      "art": "chip",
+      "kategorie": "elearning",
+      "titel": "Beispiel-Chip E-Learning 1",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "c2",
+      "art": "chip",
+      "kategorie": "elearning",
+      "titel": "Beispiel-Chip E-Learning 2",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "l1",
+      "art": "kachel",
+      "kategorie": "lms",
+      "titel": "Beispiel LMS 1",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "l2",
+      "art": "kachel",
+      "kategorie": "lms",
+      "titel": "Beispiel LMS 2",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "l3",
+      "art": "kachel",
+      "kategorie": "lms",
+      "titel": "Beispiel LMS 3",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "c3",
+      "art": "chip",
+      "kategorie": "lms",
+      "titel": "Beispiel-Chip LMS",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "i1",
+      "art": "kachel",
+      "kategorie": "idd",
+      "titel": "Beispiel IDD 1",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "i2",
+      "art": "kachel",
+      "kategorie": "idd",
+      "titel": "Beispiel IDD 2",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "c4",
+      "art": "chip",
+      "kategorie": "idd",
+      "titel": "Beispiel-Chip IDD 1",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "c5",
+      "art": "chip",
+      "kategorie": "idd",
+      "titel": "Beispiel-Chip IDD 2",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    },
+    {
+      "id": "c6",
+      "art": "chip",
+      "kategorie": "idd",
+      "titel": "Beispiel-Chip IDD 3",
+      "link": "https://www.ruv.de",
+      "bild": "",
+      "original": ""
+    }
   ]
 }

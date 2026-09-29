@@ -41,9 +41,32 @@ img{max-width:100%}
 main{flex:1;width:100%;max-width:1240px;margin:0 auto;padding:44px 28px 64px}
 .einleitung{margin:0 0 32px;color:var(--text-leise);font-size:1.05rem;max-width:62ch}
 
+/* ---------- Übersicht: eine Reihe je Kategorie ---------- */
+.uebersicht{display:flex;flex-direction:column;gap:44px}
+.kategorie{--kat:var(--rv-blau);--kat-text:var(--weiss);min-width:0}
+.kat-titel{display:flex;align-items:center;gap:10px;margin:0 0 16px;font-size:1.3rem;font-weight:700;color:var(--text);letter-spacing:.005em}
+.kat-titel::before{content:"";width:6px;height:1.3em;border-radius:3px;background:var(--kat)}
+.kat-inhalt{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:28px;align-items:start}
+.kategorie.ohne-chips .kat-inhalt,.kategorie.ohne-kacheln .kat-inhalt{grid-template-columns:minmax(0,1fr)}
+.kategorie.ohne-kacheln .chips{max-width:360px}
+
+/* Kachelspur: waagerecht blätterbar */
+.reihe{position:relative;min-width:0}
+.spur{display:flex;gap:20px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 12px;padding:12px 12px 34px;margin:-12px -12px -22px;
+  scrollbar-width:thin;scrollbar-color:var(--linie) transparent;overscroll-behavior-x:contain}
+.spur::-webkit-scrollbar{height:8px}
+.spur::-webkit-scrollbar-thumb{background:var(--linie);border-radius:4px}
+.blaettern{position:absolute;top:calc(50% - 30px);z-index:2;width:40px;height:40px;border-radius:50%;border:1px solid var(--linie);
+  background:var(--weiss);color:var(--rv-blau);font:inherit;font-size:1.5rem;line-height:1;cursor:pointer;box-shadow:var(--schatten);
+  display:flex;align-items:center;justify-content:center;padding:0 0 3px}
+.blaettern[hidden]{display:none}
+.blaettern:hover{background:var(--rv-blau-hell)}
+.blaettern:focus-visible{outline:3px solid var(--rv-orange);outline-offset:2px}
+.blaettern.zurueck{left:-14px}
+.blaettern.vor{right:-14px}
+
 /* ---------- Kacheln ---------- */
-.raster{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:28px}
-.kachel{position:relative;display:flex;flex-direction:column;background:var(--rv-blau);color:var(--weiss);
+.kachel{position:relative;flex:0 0 200px;scroll-snap-align:start;display:flex;flex-direction:column;background:var(--kat);color:var(--kat-text);
   border-radius:var(--radius);overflow:hidden;text-decoration:none;box-shadow:var(--schatten);
   transition:transform .18s ease,box-shadow .18s ease}
 .kachel::after{content:"";position:absolute;left:0;right:0;bottom:0;height:4px;background:var(--rv-orange);
@@ -53,13 +76,26 @@ main{flex:1;width:100%;max-width:1240px;margin:0 auto;padding:44px 28px 64px}
 .kachel:focus-visible{outline:3px solid var(--rv-orange);outline-offset:3px}
 .kachel .bild{aspect-ratio:1/1;background:var(--rv-blau-hell);display:flex;align-items:center;justify-content:center;overflow:hidden}
 .kachel .bild img{width:100%;height:100%;object-fit:cover;display:block}
-.initiale{font-size:4rem;font-weight:700;color:var(--rv-blau);opacity:.35;line-height:1}
-.kachel .inhalt{display:flex;align-items:flex-start;gap:10px;padding:14px 16px 18px}
-.kachel .texte{flex:1;min-width:0}
-.kachel h2{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3}
-.kachel .url{display:block;margin-top:2px;font-size:.8rem;color:var(--rv-blau-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.kachel .extern{flex-shrink:0;width:18px;height:18px;margin-top:2px;opacity:.7}
+.initiale{font-size:4rem;font-weight:700;color:var(--kat);opacity:.4;line-height:1}
+.kachel .inhalt{flex:1;padding:14px 16px 18px}
+.kachel h3{margin:0;font-size:1.05rem;font-weight:600;line-height:1.3;overflow-wrap:anywhere}
+
+/* ---------- Chips ---------- */
+.chips{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.chip{display:flex;align-items:center;min-height:44px;padding:10px 20px;border-radius:999px;background:var(--kat);color:var(--kat-text);
+  font-weight:600;font-size:.95rem;line-height:1.3;text-decoration:none;box-shadow:0 1px 2px rgba(0,43,92,.10);
+  transition:transform .15s ease,box-shadow .15s ease,filter .15s ease}
+.chip span{overflow-wrap:anywhere}
+.chip:hover{transform:translateX(3px);box-shadow:var(--schatten);filter:brightness(1.08)}
+.chip:focus-visible{outline:3px solid var(--rv-orange);outline-offset:2px}
+
 .leer{padding:56px 24px;text-align:center;color:var(--text-leise);border:1px dashed var(--linie);border-radius:var(--radius)}
+
+@media (max-width:760px){
+  .kat-inhalt{grid-template-columns:minmax(0,1fr)}
+  .kategorie.ohne-kacheln .chips{max-width:none}
+  .blaettern{display:none}
+}
 
 /* ---------- Fuß ---------- */
 .seitenfuss{background:var(--rv-blau-dunkel);color:rgba(255,255,255,.8);font-size:.875rem}
@@ -83,11 +119,11 @@ main{flex:1;width:100%;max-width:1240px;margin:0 auto;padding:44px 28px 64px}
 .knopf.klein{padding:6px 10px;font-size:.85rem;font-weight:500}
 .knopf.symbol{padding:6px 9px;min-width:34px;justify-content:center}
 .knopf:disabled{opacity:.45;cursor:default}
-.knopf:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--rv-orange);outline-offset:2px}
+.knopf:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--rv-orange);outline-offset:2px}
 
 label{display:block;font-size:.875rem;font-weight:600;margin:16px 0 6px}
-input[type=text],input[type=url],textarea{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:8px;font:inherit;color:var(--text);background:var(--weiss)}
-input[type=text]:focus,input[type=url]:focus,textarea:focus{border-color:var(--rv-blau-mittel)}
+input[type=text],input[type=url],select,textarea{width:100%;padding:10px 12px;border:1px solid var(--linie);border-radius:8px;font:inherit;color:var(--text);background:var(--weiss)}
+input[type=text]:focus,input[type=url]:focus,select:focus,textarea:focus{border-color:var(--rv-blau-mittel)}
 textarea{resize:vertical;min-height:70px}
 .hinweis{font-size:.85rem;color:var(--text-leise);margin:6px 0 0}
 .versteckt{display:none !important}
@@ -121,6 +157,34 @@ textarea{resize:vertical;min-height:70px}
 .eintrag .url{font-size:.8rem;color:var(--text-leise);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .eintrag .knoepfe{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
 @media (max-width:560px){.eintrag{flex-wrap:wrap}.eintrag .knoepfe{width:100%}}
+
+/* Gruppen nach Kategorie */
+.gruppe{--kat:var(--rv-blau);--kat-text:var(--weiss)}
+.gruppe + .gruppe{margin-top:22px}
+.gruppenkopf{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:1rem;color:var(--text)}
+.gruppenkopf::before{content:"";width:5px;height:1.1em;border-radius:3px;background:var(--kat)}
+.untergruppe + .untergruppe{margin-top:12px}
+.unterkopf{font-size:.75rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-leise);margin:0 0 6px}
+.gruppe-leer{margin:0;padding:10px 12px;border:1px dashed var(--linie);border-radius:10px;color:var(--text-leise);font-size:.875rem}
+.mini.chipmini{height:22px;border-radius:999px;background:var(--kat)}
+.eintrag .mini:not(img){color:var(--kat)}
+
+/* Kategorien: Farbtöne */
+.kategorienliste{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.katzeile{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.katprobe{flex:1 1 140px;min-width:0;padding:8px 16px;border-radius:999px;background:var(--kat);color:var(--kat-text);font-weight:600;font-size:.95rem}
+.katzeile input[type=color]{width:44px;height:38px;padding:3px;border:1px solid var(--linie);border-radius:8px;background:var(--weiss);cursor:pointer}
+.katzeile .hexfeld{width:96px;font-family:ui-monospace,Consolas,monospace;font-size:.9rem;text-transform:uppercase}
+.hexfeld.ungueltig{border-color:var(--gefahr)}
+@media (max-width:600px){.katprobe{flex-basis:100%}}
+
+/* Art: Kachel oder Chip */
+.umschalter{border:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.umschalter legend{display:block;font-size:.875rem;font-weight:600;margin:0 0 6px;padding:0}
+.umschalter label{display:inline-flex;align-items:center;gap:8px;margin:0;padding:8px 14px;border:1px solid var(--linie);border-radius:8px;font-weight:600;cursor:pointer}
+.umschalter label:has(input:checked){border-color:var(--rv-blau);background:var(--rv-blau-hell)}
+.umschalter input{accent-color:var(--rv-blau);margin:0}
+.umschalter .erklaerung{font-weight:400;font-size:.8rem;color:var(--text-leise)}
 
 .bildfeld{display:flex;gap:18px;align-items:center;flex-wrap:wrap}
 .bildvorschau{width:140px;height:140px;border-radius:12px;background:var(--rv-blau-hell);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0;border:1px solid var(--linie);color:var(--text-leise);font-size:.85rem;text-align:center;padding:0}
@@ -162,9 +226,12 @@ dialog.zuschnitt::backdrop,dialog.fenster::backdrop{background:rgba(0,27,60,.6)}
   .seitenkopf h1{font-size:1.2rem}
   main{padding:28px 18px 48px}
   .seitenkopf .innen,.seitenfuss .innen,.statusleiste .innen{padding-left:18px;padding-right:18px}
-  .raster{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:18px}
+  .kachel{flex-basis:160px}
+  .spur{gap:14px;margin-left:-18px;margin-right:-18px;padding-left:18px;padding-right:18px;scroll-padding:0 18px}
+  .uebersicht{gap:36px}
 }
 @media (prefers-reduced-motion:reduce){
-  .kachel,.kachel::after,.meldung{transition:none}
-  .kachel:hover{transform:none}
+  .kachel,.kachel::after,.chip,.meldung{transition:none}
+  .kachel:hover,.chip:hover{transform:none}
+  .spur{scroll-behavior:auto}
 }

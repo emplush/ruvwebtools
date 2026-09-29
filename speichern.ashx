@@ -23,6 +23,7 @@ public class KachelnSpeichern : IHttpHandler
 {
     static readonly object Sperre = new object();
     static readonly Regex BildPfad = new Regex(@"daten/bilder/([0-9a-f]{40}\.(?:jpg|png|gif|webp|svg))", RegexOptions.IgnoreCase);
+    static readonly Regex Farbe = new Regex(@"^#[0-9a-fA-F]{6}$");
     static readonly Regex BildName = new Regex(@"^[0-9a-f]{40}\.(?:jpg|png|gif|webp|svg)$", RegexOptions.IgnoreCase);
     static readonly Dictionary<string, string> Endungen = new Dictionary<string, string> {
         { "image/jpeg", "jpg" }, { "image/png", "png" }, { "image/gif", "gif" },
@@ -84,6 +85,9 @@ public class KachelnSpeichern : IHttpHandler
                     var k = o as Dictionary<string, object>;
                     if (k == null) throw new Fehler(400, "Ungültige Kachel", "daten");
                     string titel = Text(k, "titel");
+                    string art = Text(k, "art");
+                    if (art != "" && art != "kachel" && art != "chip")
+                        throw new Fehler(400, "Unbekannte Art bei „" + titel + "“", "daten");
                     Uri uri;
                     if (!Uri.TryCreate(Text(k, "link"), UriKind.Absolute, out uri) ||
                         (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
@@ -92,6 +96,19 @@ public class KachelnSpeichern : IHttpHandler
                     Auslagern(k, "original", bildordner);
                 }
                 Auslagern(daten, "logo", bildordner);
+
+                // Farbtöne der Kategorien landen im Stil-Attribut: nur #RRGGBB zulassen
+                object kategorien;
+                if (daten.TryGetValue("kategorien", out kategorien))
+                {
+                    if (!(kategorien is object[])) throw new Fehler(400, "Ungültige Kategorien", "daten");
+                    foreach (object o in (object[])kategorien)
+                    {
+                        var kat = o as Dictionary<string, object>;
+                        if (kat == null || !Farbe.IsMatch(Text(kat, "farbe")))
+                            throw new Fehler(400, "Ungültiger Farbton bei einer Kategorie", "farbe");
+                    }
+                }
 
                 daten["stand"] = DateTime.UtcNow.ToString("o");
                 string json = ser.Serialize(daten);

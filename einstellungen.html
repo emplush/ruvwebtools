@@ -33,11 +33,11 @@
     <div>
       <section class="feld" aria-labelledby="h-kacheln">
         <div class="feldkopf">
-          <h2 id="h-kacheln">Kacheln</h2>
-          <button class="knopf primaer klein" id="neu">Kachel hinzufügen</button>
+          <h2 id="h-kacheln">Kacheln und Chips</h2>
+          <button class="knopf primaer klein" id="neu">Hinzufügen</button>
         </div>
-        <p class="hinweis" style="margin:0 0 14px">Reihenfolge per Ziehen am Griff oder mit den Pfeilen ändern. So erscheinen die Kacheln auch auf der Übersicht.</p>
-        <ul class="liste" id="liste"></ul>
+        <p class="hinweis" style="margin:0 0 14px">Reihenfolge innerhalb einer Gruppe per Ziehen am Griff oder mit den Pfeilen ändern. So erscheinen die Einträge auch auf der Übersicht.</p>
+        <div id="liste"></div>
       </section>
 
       <section class="feld" aria-labelledby="h-seite">
@@ -59,28 +59,45 @@
       </section>
     </div>
 
-    <section class="feld" aria-labelledby="h-editor" id="editor">
-      <h2 id="h-editor">Neue Kachel</h2>
-      <label for="k-titel">Titel</label>
-      <input type="text" id="k-titel" maxlength="60" placeholder="z. B. Schadenrechner">
-      <label for="k-link">Link</label>
-      <input type="url" id="k-link" placeholder="https://…">
-      <label>Bild</label>
-      <div class="bildfeld">
-        <div class="bildvorschau" id="k-vorschau">Kein Bild</div>
-        <div class="bildknoepfe">
-          <button class="knopf klein" id="k-hochladen">Bild hochladen</button>
-          <button class="knopf klein" id="k-ausschnitt" disabled>Ausschnitt ändern</button>
-          <button class="knopf klein gefahr" id="k-entfernen" disabled>Bild entfernen</button>
-          <input type="file" id="k-datei" accept="image/*" hidden>
+    <div>
+      <section class="feld" aria-labelledby="h-editor" id="editor">
+        <h2 id="h-editor">Neue Kachel</h2>
+        <fieldset class="umschalter">
+          <legend>Art</legend>
+          <label><input type="radio" name="k-art" id="k-art-kachel" value="kachel" checked> Kachel <span class="erklaerung">mit Bild</span></label>
+          <label><input type="radio" name="k-art" id="k-art-chip" value="chip"> Chip <span class="erklaerung">nur Titel</span></label>
+        </fieldset>
+        <label for="k-kategorie">Kategorie</label>
+        <select id="k-kategorie"></select>
+        <label for="k-titel">Titel</label>
+        <input type="text" id="k-titel" maxlength="60" placeholder="z. B. Schadenrechner">
+        <label for="k-link">Link</label>
+        <input type="url" id="k-link" placeholder="https://…">
+        <div id="k-bildbereich">
+          <label>Bild</label>
+          <div class="bildfeld">
+            <div class="bildvorschau" id="k-vorschau">Kein Bild</div>
+            <div class="bildknoepfe">
+              <button class="knopf klein" id="k-hochladen">Bild hochladen</button>
+              <button class="knopf klein" id="k-ausschnitt" disabled>Ausschnitt ändern</button>
+              <button class="knopf klein gefahr" id="k-entfernen" disabled>Bild entfernen</button>
+              <input type="file" id="k-datei" accept="image/*" hidden>
+            </div>
+          </div>
+          <p class="hinweis">Das Bild wird quadratisch angezeigt. Nach dem Hochladen wählst du den Ausschnitt.</p>
         </div>
-      </div>
-      <p class="hinweis">Das Bild wird quadratisch angezeigt. Nach dem Hochladen wählst du den Ausschnitt.</p>
-      <div class="formfuss">
-        <button class="knopf primaer" id="k-uebernehmen">Kachel hinzufügen</button>
-        <button class="knopf" id="k-abbrechen">Abbrechen</button>
-      </div>
-    </section>
+        <div class="formfuss">
+          <button class="knopf primaer" id="k-uebernehmen">Kachel hinzufügen</button>
+          <button class="knopf" id="k-abbrechen">Abbrechen</button>
+        </div>
+      </section>
+
+      <section class="feld" aria-labelledby="h-kategorien">
+        <h2 id="h-kategorien">Kategorien</h2>
+        <p class="hinweis" style="margin:6px 0 4px">Der Farbton färbt den Bereich unter dem Kachelbild und die Chips der Kategorie. Die Schriftfarbe passt sich automatisch an.</p>
+        <div class="kategorienliste" id="kategorien"></div>
+      </section>
+    </div>
   </div>
 </main>
 

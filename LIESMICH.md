@@ -1,10 +1,10 @@
 # Webtools-Übersicht – Installation auf IIS
 
 ## Inhalt
-- `index.html` – Übersicht mit den Kacheln
+- `index.html` – Übersicht: je Kategorie eine Reihe mit Kacheln und Chips
 - `einstellungen.html` – Verwaltung (Knopf „Anpassen“ oben rechts auf der Übersicht)
 - `assets/` – Gestaltung und Skripte
-- `daten/kacheln.json` – alle Kacheln und Seitentexte (keine Datenbank nötig)
+- `daten/kacheln.json` – alle Kacheln, Chips, Farbtöne und Seitentexte (keine Datenbank nötig)
 - `daten/bilder/` – Kachelbilder und Logo; wird beim ersten Speichern automatisch angelegt
 - `speichern.ashx` – schreibt Änderungen direkt auf den Server (optional)
 - `web.config` – IIS-Einstellungen
@@ -32,6 +32,18 @@ Soll nur eine bestimmte Gruppe ändern dürfen, den vorbereiteten Block am Ende 
 - **5× schnell** auf die Fußzeile klicken
 - oder direkt `einstellungen.html` aufrufen
 
+## Kategorien, Kacheln und Chips
+- Es gibt drei feste Kategorien in dieser Reihenfolge: **E-Learning**, **LMS**, **IDD**.
+  Jede erscheint auf der Übersicht als eigene Reihe; leere Kategorien werden ausgeblendet.
+- **Kacheln** haben ein quadratisches Bild und darunter den Titel im Farbton der Kategorie.
+  Passen nicht alle in die Reihe, lässt sie sich waagerecht blättern.
+- **Chips** sind schmale, abgerundete Einträge ohne Bild. Sie stehen rechts neben den Kacheln
+  ihrer Kategorie untereinander (auf dem Handy darunter).
+- Der **Farbton** jeder Kategorie ist in den Einstellungen unter „Kategorien“ änderbar.
+  Die Schriftfarbe (weiß oder dunkel) wird automatisch passend gewählt.
+- Kacheln und Chips öffnen ihren Link in einem neuen Fenster. Der Link selbst wird nicht angezeigt.
+- Vorhandene Kacheln aus älteren Versionen landen automatisch in „E-Learning“.
+
 ## Wie gespeichert wird
 - **Bilder** werden als Dateien in `daten/bilder` abgelegt (Dateiname = Prüfsumme des Inhalts),
   `kacheln.json` enthält nur die Pfade und bleibt dadurch klein. Nicht mehr benutzte Bilder
@@ -43,7 +55,7 @@ Soll nur eine bestimmte Gruppe ändern dürfen, den vorbereiteten Block am Ende 
 - **Gleichzeitiges Bearbeiten:** `kacheln.json` enthält einen Zeitstempel (`stand`). Hat seit dem
   Öffnen der Einstellungen jemand anderes gespeichert, fragt die Seite nach, ob dessen Fassung
   überschrieben werden soll. Das gilt auch für einen im Browser zwischengespeicherten Entwurf.
-- Als Kachel-Link sind nur `http://`- und `https://`-Adressen erlaubt.
+- Als Link sind nur `http://`- und `https://`-Adressen erlaubt, als Farbton nur Werte wie `#003A7D`.
 
 ## Aktualisieren
 Beim Einspielen einer neuen Version den Ordner `daten` **nicht** überschreiben – er enthält
@@ -51,6 +63,7 @@ die aktuellen Kacheln und Bilder.
 
 ## Anpassungen
 - Farben und Schrift: oben in `assets/rv.css` unter `:root`
+- Namen und Standard-Farbtöne der Kategorien: `KATEGORIEN` in `assets/gemeinsam.js`
 - Logo: in den Einstellungen unter „Seite“ hochladen
 - Bildgröße der Kacheln: `AUSGABE` in `assets/zuschnitt.js` (Standard 600 × 600 px)
 - Größe der aufbewahrten Originale: `ORIGINAL_MAX` in `assets/einstellungen.js` (Standard 1600 px)

@@ -1,4 +1,4 @@
-/* Einstellungen: Kacheln verwalten, sortieren, Bilder zuschneiden, speichern */
+/* Einstellungen: Kacheln und Chips verwalten, sortieren, Farbtöne der Kategorien, Bilder zuschneiden, speichern */
 (function(){
   var ENTWURF = "webtools-entwurf";
   var SPEICHER_URL = "speichern.ashx";
@@ -36,7 +36,7 @@
       h.classList.remove("versteckt");
     });
 
-  function alles(){ WT.kopfAnwenden(cfg); liste(); seite(); status(); formLeeren(); }
+  function alles(){ WT.kopfAnwenden(cfg); liste(); kategorienAnzeigen(); seite(); status(); formLeeren(); }
   function geaendert(){ return JSON.stringify(cfg) !== gespeichert; }
 
   /* ---------- Entwurf im Browser ---------- */
@@ -109,59 +109,83 @@
     if (cfg && geaendert()){ e.preventDefault(); e.returnValue = ""; }
   });
 
-  /* ---------- Liste ---------- */
+  /* ---------- Liste (gruppiert nach Kategorie und Art) ---------- */
+  function gruppe(k){ return k.kategorie + "|" + k.art; }
+  function artName(art, mehrzahl){ return art === "chip" ? (mehrzahl ? "Chips" : "Chip") : (mehrzahl ? "Kacheln" : "Kachel"); }
+
+  function eintragHtml(k, i, pos, anzahl){
+    var bild = k.art === "chip" ? '<span class="mini chipmini" aria-hidden="true"></span>'
+      : k.bild ? '<img class="mini" src="' + WT.esc(k.bild) + '" alt="">'
+      : '<span class="mini">' + WT.esc((k.titel||"?").charAt(0).toUpperCase()) + '</span>';
+    return '<li class="eintrag' + (k.id === bearbeiteId ? ' aktiv' : '') + '" data-i="' + i + '" data-g="' + gruppe(k) + '">' +
+      '<span class="griff" title="Zum Verschieben ziehen" aria-hidden="true">⠿</span>' + bild +
+      '<div class="texte"><div class="titel">' + WT.esc(k.titel) + '</div><div class="url">' + WT.esc(WT.host(k.link)) + '</div></div>' +
+      '<div class="knoepfe">' +
+        '<button class="knopf klein symbol" data-a="hoch" aria-label="' + WT.esc(k.titel) + ' nach oben"' + (pos === 0 ? ' disabled' : '') + '>▲</button>' +
+        '<button class="knopf klein symbol" data-a="runter" aria-label="' + WT.esc(k.titel) + ' nach unten"' + (pos === anzahl - 1 ? ' disabled' : '') + '>▼</button>' +
+        '<button class="knopf klein" data-a="edit">Bearbeiten</button>' +
+        '<button class="knopf klein gefahr" data-a="del">Entfernen</button>' +
+      '</div></li>';
+  }
+
   function liste(){
-    var l = $("liste");
-    if (!cfg.kacheln.length){
-      l.innerHTML = '<li class="leer">Noch keine Kacheln. Lege rechts die erste an.</li>';
-      return;
-    }
-    l.innerHTML = cfg.kacheln.map(function(k, i){
-      var bild = k.bild ? '<img class="mini" src="' + WT.esc(k.bild) + '" alt="">'
-                        : '<span class="mini">' + WT.esc((k.titel||"?").charAt(0).toUpperCase()) + '</span>';
-      return '<li class="eintrag' + (k.id === bearbeiteId ? ' aktiv' : '') + '" data-i="' + i + '">' +
-        '<span class="griff" title="Zum Verschieben ziehen" aria-hidden="true">⠿</span>' + bild +
-        '<div class="texte"><div class="titel">' + WT.esc(k.titel) + '</div><div class="url">' + WT.esc(WT.host(k.link)) + '</div></div>' +
-        '<div class="knoepfe">' +
-          '<button class="knopf klein symbol" data-a="hoch" aria-label="' + WT.esc(k.titel) + ' nach oben"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
-          '<button class="knopf klein symbol" data-a="runter" aria-label="' + WT.esc(k.titel) + ' nach unten"' + (i === cfg.kacheln.length - 1 ? ' disabled' : '') + '>▼</button>' +
-          '<button class="knopf klein" data-a="edit">Bearbeiten</button>' +
-          '<button class="knopf klein gefahr" data-a="del">Entfernen</button>' +
-        '</div></li>';
+    $("liste").innerHTML = cfg.kategorien.map(function(kat){
+      var teile = ["kachel", "chip"].map(function(art){
+        var eintraege = [];
+        cfg.kacheln.forEach(function(k, i){ if (k.kategorie === kat.id && k.art === art) eintraege.push({ k: k, i: i }); });
+        if (!eintraege.length) return "";
+        return '<div class="untergruppe"><div class="unterkopf">' + artName(art, true) + '</div><ul class="liste">' +
+          eintraege.map(function(e, pos){ return eintragHtml(e.k, e.i, pos, eintraege.length); }).join("") + '</ul></div>';
+      }).join("");
+      return '<div class="gruppe" style="' + WT.farbStil(kat) + '"><h3 class="gruppenkopf">' + WT.esc(kat.name) + '</h3>' +
+        (teile || '<p class="gruppe-leer">Noch keine Einträge.</p>') + '</div>';
     }).join("");
   }
 
+  /* Verschiebt einen Eintrag innerhalb seiner Gruppe; die übrigen Einträge behalten ihre Plätze */
   function verschieben(von, nach){
-    if (nach < 0 || nach >= cfg.kacheln.length || von === nach) return;
-    var k = cfg.kacheln.splice(von, 1)[0];
-    cfg.kacheln.splice(nach, 0, k);
+    var g = gruppe(cfg.kacheln[von]);
+    if (!cfg.kacheln[nach] || gruppe(cfg.kacheln[nach]) !== g || von === nach) return;
+    var mitglieder = cfg.kacheln.filter(function(k){ return gruppe(k) === g; });
+    var a = mitglieder.indexOf(cfg.kacheln[von]), b = mitglieder.indexOf(cfg.kacheln[nach]);
+    mitglieder.splice(b, 0, mitglieder.splice(a, 1)[0]);
+    var n = 0;
+    cfg.kacheln = cfg.kacheln.map(function(k){ return gruppe(k) === g ? mitglieder[n++] : k; });
     aendern();
+  }
+  /* Nachbar innerhalb der Gruppe (richtung -1 = davor, +1 = danach) */
+  function nachbar(i, richtung){
+    var g = gruppe(cfg.kacheln[i]);
+    for (var j = i + richtung; j >= 0 && j < cfg.kacheln.length; j += richtung)
+      if (gruppe(cfg.kacheln[j]) === g) return j;
+    return -1;
   }
 
   $("liste").addEventListener("click", function(e){
     var b = e.target.closest("button"); if (!b) return;
     var i = +b.closest("li").dataset.i, k = cfg.kacheln[i];
-    if (b.dataset.a === "hoch") verschieben(i, i - 1);
-    else if (b.dataset.a === "runter") verschieben(i, i + 1);
+    if (b.dataset.a === "hoch") verschieben(i, nachbar(i, -1));
+    else if (b.dataset.a === "runter") verschieben(i, nachbar(i, 1));
     else if (b.dataset.a === "edit") bearbeiten(k.id);
     else if (b.dataset.a === "del"){
-      bestaetigen({ titel: "Kachel entfernen", text: "„" + k.titel + "“ wird aus der Übersicht entfernt.", ok: "Entfernen", gefahr: true })
+      bestaetigen({ titel: artName(k.art) + " entfernen", text: "„" + k.titel + "“ wird aus der Übersicht entfernt.", ok: "Entfernen", gefahr: true })
         .then(function(ok){
           if (!ok) return;
           cfg.kacheln = cfg.kacheln.filter(function(x){ return x.id !== k.id; });
           if (bearbeiteId === k.id) formLeeren();
           aendern();
-          WT.melden("Kachel entfernt.");
+          WT.melden(artName(k.art) + " entfernt.");
         });
     }
   });
 
-  /* Ziehen am Griff – mit Pointer-Events, damit es mit Maus, Stift und Touch funktioniert */
+  /* Ziehen am Griff – mit Pointer-Events, damit es mit Maus, Stift und Touch funktioniert.
+     Abgelegt werden kann nur innerhalb derselben Gruppe. */
   var zug = null;
   function zielBei(x, y){
     var el = document.elementFromPoint(x, y);
     var li = el && el.closest(".eintrag");
-    return li && $("liste").contains(li) ? li : null;
+    return li && $("liste").contains(li) && li.dataset.g === zug.gruppe ? li : null;
   }
   function zielMarkieren(li){
     document.querySelectorAll(".eintrag.ziel").forEach(function(x){ if (x !== li) x.classList.remove("ziel"); });
@@ -172,7 +196,7 @@
     if (!g || e.button > 0) return;
     e.preventDefault();
     var li = g.closest("li");
-    zug = { von: +li.dataset.i, li: li, zeiger: e.pointerId };
+    zug = { von: +li.dataset.i, li: li, gruppe: li.dataset.g, zeiger: e.pointerId };
     g.setPointerCapture(e.pointerId);
     li.classList.add("ziehen");
   });
@@ -192,7 +216,62 @@
   $("liste").addEventListener("pointerup", zugEnde);
   $("liste").addEventListener("pointercancel", zugEnde);
 
-  /* ---------- Kachel-Formular ---------- */
+  /* ---------- Kategorien (Farbtöne) ---------- */
+  function kategorienAnzeigen(){
+    $("kategorien").innerHTML = cfg.kategorien.map(function(kat){
+      var standard = WT.kategorieVon(kat.id).farbe;
+      return '<div class="katzeile" data-id="' + kat.id + '">' +
+        '<span class="katprobe" style="' + WT.farbStil(kat) + '">' + WT.esc(kat.name) + '</span>' +
+        '<input type="color" id="kf-' + kat.id + '" value="' + kat.farbe.toLowerCase() + '" aria-label="Farbton ' + WT.esc(kat.name) + '">' +
+        '<input type="text" class="hexfeld" id="kh-' + kat.id + '" value="' + kat.farbe + '" maxlength="7" spellcheck="false" aria-label="Farbwert ' + WT.esc(kat.name) + ' (z. B. #003A7D)">' +
+        '<button type="button" class="knopf klein" data-a="standard"' + (kat.farbe === standard ? ' disabled' : '') + '>Standard</button>' +
+      '</div>';
+    }).join("");
+  }
+  function farbeSetzen(id, farbe){
+    var kat = cfg.kategorien.filter(function(k){ return k.id === id; })[0];
+    kat.farbe = farbe.toUpperCase();
+    var zeile = $("kategorien").querySelector('[data-id="' + id + '"]');
+    zeile.querySelector(".katprobe").setAttribute("style", WT.farbStil(kat));
+    if (document.activeElement !== $("kf-" + id)) $("kf-" + id).value = kat.farbe.toLowerCase();
+    if (document.activeElement !== $("kh-" + id)) $("kh-" + id).value = kat.farbe;
+    zeile.querySelector("[data-a=standard]").disabled = kat.farbe === WT.kategorieVon(id).farbe;
+    aendern();
+  }
+  $("kategorien").addEventListener("input", function(e){
+    var zeile = e.target.closest(".katzeile"); if (!zeile) return;
+    var wert = e.target.value.trim();
+    if (e.target.classList.contains("hexfeld")){
+      if (!/^#/.test(wert)) wert = "#" + wert;
+      var gueltig = WT.farbeGueltig(wert);
+      e.target.classList.toggle("ungueltig", !gueltig);
+      if (!gueltig) return;
+    }
+    farbeSetzen(zeile.dataset.id, wert);
+  });
+  $("kategorien").addEventListener("focusout", function(e){
+    if (!e.target.classList.contains("hexfeld")) return;
+    var kat = cfg.kategorien.filter(function(k){ return k.id === e.target.closest(".katzeile").dataset.id; })[0];
+    e.target.value = kat.farbe; e.target.classList.remove("ungueltig");
+  });
+  $("kategorien").addEventListener("click", function(e){
+    var b = e.target.closest("[data-a=standard]"); if (!b) return;
+    var id = b.closest(".katzeile").dataset.id;
+    farbeSetzen(id, WT.kategorieVon(id).farbe);
+  });
+
+  /* ---------- Formular für Kacheln und Chips ---------- */
+  $("k-kategorie").innerHTML = WT.KATEGORIEN.map(function(k){ return '<option value="' + k.id + '">' + WT.esc(k.name) + '</option>'; }).join("");
+
+  function formArt(){ return $("k-art-chip").checked ? "chip" : "kachel"; }
+  function formTexte(){
+    var art = formArt();
+    $("h-editor").textContent = (bearbeiteId ? artName(art) + " bearbeiten" : art === "chip" ? "Neuer Chip" : "Neue Kachel");
+    $("k-uebernehmen").textContent = bearbeiteId ? "Änderungen übernehmen" : artName(art) + " hinzufügen";
+    $("k-bildbereich").hidden = art === "chip";
+  }
+  $("k-art-kachel").onchange = $("k-art-chip").onchange = formTexte;
+
   function vorschau(){
     var v = $("k-vorschau");
     v.innerHTML = formBild ? '<img src="' + WT.esc(formBild) + '" alt="Bildvorschau">' : "Kein Bild";
@@ -203,18 +282,18 @@
   function formLeeren(){
     bearbeiteId = null; formBild = ""; formOriginal = "";
     $("k-titel").value = ""; $("k-link").value = "";
-    $("h-editor").textContent = "Neue Kachel";
-    $("k-uebernehmen").textContent = "Kachel hinzufügen";
-    vorschau(); liste();
+    $("k-art-kachel").checked = true;
+    $("k-kategorie").value = WT.KATEGORIEN[0].id;
+    formTexte(); vorschau(); liste();
   }
 
   function bearbeiten(id){
     var k = cfg.kacheln.filter(function(x){ return x.id === id; })[0]; if (!k) return;
     bearbeiteId = id; formBild = k.bild || ""; formOriginal = k.original || "";
     $("k-titel").value = k.titel; $("k-link").value = k.link;
-    $("h-editor").textContent = "Kachel bearbeiten";
-    $("k-uebernehmen").textContent = "Änderungen übernehmen";
-    vorschau(); liste();
+    $("k-art-" + k.art).checked = true;
+    $("k-kategorie").value = k.kategorie;
+    formTexte(); vorschau(); liste();
     if (window.matchMedia("(max-width:920px)").matches) $("editor").scrollIntoView({behavior:"smooth", block:"start"});
     $("k-titel").focus({preventScroll:true});
   }
@@ -243,6 +322,7 @@
 
   $("k-uebernehmen").onclick = function(){
     var titel = $("k-titel").value.trim(), link = $("k-link").value.trim();
+    var art = formArt(), kategorie = $("k-kategorie").value;
     if (!titel){ WT.melden("Bitte einen Titel eingeben.", true); $("k-titel").focus(); return; }
     if (!link){ WT.melden("Bitte einen Link eingeben.", true); $("k-link").focus(); return; }
     if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(link)) link = "https://" + link;
@@ -250,14 +330,20 @@
       WT.melden("Der Link ist ungültig. Erlaubt sind nur Adressen mit http:// oder https://.", true);
       $("k-link").focus(); return;
     }
+    /* Chips haben kein Bild */
+    var bild = art === "kachel" ? formBild : "", original = bild ? formOriginal : "";
+    var daten = { art: art, kategorie: kategorie, titel: titel, link: link, bild: bild, original: original };
 
     if (bearbeiteId){
       var k = cfg.kacheln.filter(function(x){ return x.id === bearbeiteId; })[0];
-      k.titel = titel; k.link = link; k.bild = formBild; k.original = formBild ? formOriginal : "";
-      WT.melden("Kachel geändert. Zum Veröffentlichen „Speichern“ klicken.");
+      var neueGruppe = gruppe(k) !== kategorie + "|" + art;
+      Object.assign(k, daten);
+      /* Wechselt der Eintrag Kategorie oder Art, kommt er ans Ende seiner neuen Gruppe */
+      if (neueGruppe) cfg.kacheln = cfg.kacheln.filter(function(x){ return x !== k; }).concat([k]);
+      WT.melden(artName(art) + " geändert. Zum Veröffentlichen „Speichern“ klicken.");
     } else {
-      cfg.kacheln.push({ id: WT.neueId(), titel: titel, link: link, bild: formBild, original: formBild ? formOriginal : "" });
-      WT.melden("Kachel hinzugefügt. Zum Veröffentlichen „Speichern“ klicken.");
+      cfg.kacheln.push(Object.assign({ id: WT.neueId() }, daten));
+      WT.melden(artName(art) + " hinzugefügt. Zum Veröffentlichen „Speichern“ klicken.");
     }
     formLeeren(); aendern();
   };
