@@ -180,7 +180,7 @@ input.katname:focus{border-color:var(--rv-orange)}
 .katzeile .hexfeld{width:96px;font-family:ui-monospace,Consolas,monospace;font-size:.9rem;text-transform:uppercase}
 .hexfeld.ungueltig{border-color:var(--gefahr)}
 .katanzahl{flex-basis:100%;margin:-4px 0 4px 16px;font-size:.8rem;color:var(--text-leise)}
-@media (max-width:600px){.katprobe{flex-basis:100%}}
+@media (max-width:600px){.kategorienliste{gap:20px}.katprobe{flex-basis:100%}.katanzahl{flex-basis:auto;margin:0}}
 
 /* Art: Kachel oder Chip */
 .umschalter{border:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}

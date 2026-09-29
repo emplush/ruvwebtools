@@ -236,7 +236,8 @@
 
   function kategorienAnzeigen(){
     var nurEine = cfg.kategorien.length === 1;
-    $("kategorien").innerHTML = cfg.kategorien.map(function(kat){
+    var letzte = cfg.kategorien.length - 1;
+    $("kategorien").innerHTML = cfg.kategorien.map(function(kat, i){
       var n = anzahlEintraege(kat.id);
       var sperre = n ? "Erst alle Kacheln und Chips dieser Kategorie entfernen oder in eine andere Kategorie verschieben."
         : nurEine ? "Mindestens eine Kategorie muss bestehen bleiben." : "";
@@ -244,6 +245,8 @@
         '<input type="text" class="katprobe katname" id="kn-' + kat.id + '" value="' + WT.esc(kat.name) + '" maxlength="40" style="' + WT.farbStil(kat) + '" aria-label="Name der Kategorie">' +
         '<input type="color" id="kf-' + kat.id + '" value="' + kat.farbe.toLowerCase() + '" aria-label="Farbton ' + WT.esc(kat.name) + '">' +
         '<input type="text" class="hexfeld" id="kh-' + kat.id + '" value="' + kat.farbe + '" maxlength="7" spellcheck="false" aria-label="Farbwert ' + WT.esc(kat.name) + ' (z. B. #003A7D)">' +
+        '<button type="button" class="knopf klein symbol" data-a="kathoch" aria-label="' + WT.esc(kat.name) + ' nach oben"' + (i === 0 ? ' disabled' : '') + '>▲</button>' +
+        '<button type="button" class="knopf klein symbol" data-a="katrunter" aria-label="' + WT.esc(kat.name) + ' nach unten"' + (i === letzte ? ' disabled' : '') + '>▼</button>' +
         '<button type="button" class="knopf klein gefahr" data-a="katdel"' + (sperre ? ' disabled title="' + WT.esc(sperre) + '"' : '') + '>Entfernen</button>' +
         '<span class="katanzahl">' + (n === 0 ? "keine Einträge" : n === 1 ? "1 Eintrag" : n + " Einträge") + '</span>' +
       '</div>';
@@ -287,6 +290,19 @@
     var kat = katVon(zeile.dataset.id);
     if (e.target.classList.contains("hexfeld")){ e.target.value = kat.farbe; e.target.classList.remove("ungueltig"); }
     if (e.target.classList.contains("katname")) e.target.value = kat.name;
+  });
+  /* Reihenfolge der Kategorien = Reihenfolge der Reihen auf der Übersicht */
+  $("kategorien").addEventListener("click", function(e){
+    var b = e.target.closest("[data-a=kathoch],[data-a=katrunter]"); if (!b || b.disabled) return;
+    var id = b.closest(".katzeile").dataset.id, i = cfg.kategorien.indexOf(katVon(id));
+    var j = b.dataset.a === "kathoch" ? i - 1 : i + 1;
+    if (j < 0 || j >= cfg.kategorien.length) return;
+    cfg.kategorien.splice(j, 0, cfg.kategorien.splice(i, 1)[0]);
+    kategorienAnzeigen(); aendern();
+    /* Fokus auf demselben Pfeil der verschobenen Kategorie halten (oder dem anderen, falls dieser jetzt gesperrt ist) */
+    var zeile = $("kategorien").querySelector('[data-id="' + id + '"]');
+    var ziel = zeile.querySelector('[data-a=' + b.dataset.a + ']');
+    (ziel.disabled ? zeile.querySelector('[data-a=' + (b.dataset.a === "kathoch" ? "katrunter" : "kathoch") + ']') : ziel).focus();
   });
   $("kategorien").addEventListener("click", function(e){
     var b = e.target.closest("[data-a=katdel]"); if (!b || b.disabled) return;

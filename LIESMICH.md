@@ -37,7 +37,7 @@ Soll nur eine bestimmte Gruppe ändern dürfen, den vorbereiteten Block am Ende 
   auf der Übersicht als eigene Reihe, in der Reihenfolge der Einstellungen; Kategorien ohne
   Einträge werden auf der Übersicht ausgeblendet.
 - In den Einstellungen unter „Kategorien“ lassen sich Kategorien **hinzufügen** (neue kommen
-  ans Ende) und **entfernen**. Entfernen geht erst, wenn die Kategorie keine Kacheln und Chips
+  ans Ende), mit den Pfeilen **umsortieren** und **entfernen**. Entfernen geht erst, wenn die Kategorie keine Kacheln und Chips
   mehr enthält; eine Kategorie muss immer bestehen bleiben.
 - **Kacheln** haben ein quadratisches Bild und darunter den Titel im Farbton der Kategorie.
   Passen nicht alle in die Reihe, lässt sie sich waagerecht blättern.
