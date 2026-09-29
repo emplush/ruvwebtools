@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Webtools</title>
-<link rel="stylesheet" href="assets/rv.css?v=20260929">
+<link rel="stylesheet" href="assets/rv.css?v=20260929b">
 </head>
 <body>
 <header class="seitenkopf">
@@ -28,14 +28,13 @@
 
 <div class="meldung" id="meldung" role="status"></div>
 
-<script src="assets/gemeinsam.js?v=20260929"></script>
+<script src="assets/gemeinsam.js?v=20260929b"></script>
 <script>
 (function(){
   var uebersicht = document.getElementById("uebersicht");
 
   WT.laden().then(function(cfg){
     WT.kopfAnwenden(cfg);
-    document.title = cfg.titel;
     document.getElementById("einleitung").textContent = cfg.einleitung;
     uebersicht.innerHTML = WT.uebersichtHtml(cfg);
     WT.reihenAktivieren(uebersicht);

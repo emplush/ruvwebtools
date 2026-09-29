@@ -123,7 +123,10 @@
       .then(normalisieren);
   }
 
+  /* Kopfzeile und Tab-Titel aus dem Seitentitel; die Einstellungen setzen per data-titelvorsatz "Anpassen – " davor */
   function kopfAnwenden(cfg){
+    var vorsatz = document.body.getAttribute("data-titelvorsatz");
+    document.title = (vorsatz ? vorsatz + " – " : "") + cfg.titel;
     var l = document.getElementById("logo");
     if (l) l.innerHTML = cfg.logo ? '<img src="' + esc(cfg.logo) + '" alt="Logo">' : "";
     var t = document.getElementById("seitentitel");

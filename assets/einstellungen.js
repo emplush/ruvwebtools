@@ -527,6 +527,21 @@
   }
   $("speichern").onclick = function(){ speichern(false); };
 
+  /* Die Übersicht zeigt nur den gespeicherten Stand – vor dem Wechsel ans Speichern erinnern */
+  $("zur-uebersicht").onclick = function(e){
+    if (!cfg || !geaendert()) return;
+    e.preventDefault();
+    var ziel = this.href;
+    bestaetigen({
+      titel: "Nicht gespeicherte Änderungen",
+      text: "Die Übersicht zeigt nur den gespeicherten Stand. Deine Änderungen (z. B. Logo, Titel, Kacheln) erscheinen dort erst nach dem Speichern.",
+      ok: "Speichern und zur Übersicht", abbrechen: "Hierbleiben"
+    }).then(function(ok){
+      if (!ok) return;
+      return speichern(false).then(function(){ if (!geaendert()) location.href = ziel; });
+    });
+  };
+
   $("verwerfen").onclick = function(){
     bestaetigen({ titel: "Änderungen verwerfen", text: "Alle nicht gespeicherten Änderungen gehen verloren.", ok: "Verwerfen", gefahr: true })
       .then(function(ok){
