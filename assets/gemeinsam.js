@@ -2,7 +2,8 @@
 (function(){
   var DATEI = "daten/kacheln.json";
 
-  /* Feste Kategorien in Anzeigereihenfolge mit Standard-Name und -Farbton; beides ist in den Einstellungen änderbar */
+  /* Standard-Kategorien für neue und ältere Daten; in den Einstellungen lassen sich Kategorien
+     umbenennen, umfärben, hinzufügen und (wenn leer) entfernen */
   var KATEGORIEN = [
     { id: "elearning", name: "E-Learning", farbe: "#003A7D" },
     { id: "lms",       name: "LMS",        farbe: "#00787A" },
@@ -14,7 +15,6 @@
     titel: "Webtools",
     einleitung: "Alle Werkzeuge an einem Ort. Ein Klick auf eine Kachel öffnet das Tool in einem neuen Fenster.",
     logo: "",
-    kategorien: KATEGORIEN,
     kacheln: []
   };
 
@@ -57,15 +57,9 @@
   /* Bringt geladene oder importierte Daten in eine einheitliche Form */
   function normalisieren(d){
     d = d && typeof d === "object" ? d : {};
-    var gespeichert = {};
-    (Array.isArray(d.kategorien) ? d.kategorien : []).forEach(function(k){
-      if (k && typeof k === "object" && typeof k.id === "string") gespeichert[k.id] = k;
-    });
-    var kategorien = KATEGORIEN.map(function(s){
-      var g = gespeichert[s.id] || {};
-      var name = typeof g.name === "string" ? g.name.trim().slice(0, 40) : "";
-      return { id: s.id, name: name || s.name, farbe: farbeGueltig(g.farbe) ? g.farbe.toUpperCase() : s.farbe };
-    });
+    var kategorien = kategorienNormalisieren(d.kategorien);
+    var gueltig = {};
+    kategorien.forEach(function(k){ gueltig[k.id] = true; });
     var ids = {};
     var kacheln = (Array.isArray(d.kacheln) ? d.kacheln : []).filter(function(k){
       return k && typeof k === "object";
@@ -76,7 +70,8 @@
       return {
         id: id,
         art: art,
-        kategorie: kategorieVon(k.kategorie).id,
+        /* Unbekannte oder fehlende Kategorie → erste Kategorie */
+        kategorie: gueltig[k.kategorie] ? k.kategorie : kategorien[0].id,
         titel: String(k.titel || ""),
         link: String(k.link || ""),
         bild: art === "kachel" && typeof k.bild === "string" ? k.bild : "",
@@ -93,9 +88,32 @@
     };
   }
 
-  /* Unbekannte oder fehlende Kategorie → erste Kategorie (E-Learning) */
-  function kategorieVon(id){
-    return KATEGORIEN.filter(function(k){ return k.id === id; })[0] || KATEGORIEN[0];
+  /* Gespeicherte Kategorien übernehmen; fehlen sie (ältere Dateien), gelten die Standard-Kategorien.
+     Es bleibt immer mindestens eine Kategorie. */
+  function kategorienNormalisieren(liste){
+    var ids = {}, erg = [];
+    (Array.isArray(liste) ? liste : []).forEach(function(k){
+      if (!k || typeof k !== "object" || !katIdGueltig(k.id) || ids[k.id]) return;
+      ids[k.id] = true;
+      var standard = KATEGORIEN.filter(function(s){ return s.id === k.id; })[0];
+      var name = typeof k.name === "string" ? k.name.trim().slice(0, 40) : "";
+      erg.push({
+        id: k.id,
+        name: name || (standard ? standard.name : "Kategorie"),
+        farbe: farbeGueltig(k.farbe) ? k.farbe.toUpperCase() : (standard ? standard.farbe : naechsteFarbe(erg))
+      });
+    });
+    return erg.length ? erg : KATEGORIEN.map(function(s){ return { id: s.id, name: s.name, farbe: s.farbe }; });
+  }
+
+  function katIdGueltig(id){ return typeof id === "string" && /^[A-Za-z0-9_-]{1,40}$/.test(id); }
+  function neueKategorieId(){ return "kat" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+
+  /* Farbtöne für neue Kategorien: der erste noch nicht verwendete */
+  var PALETTE = ["#003A7D", "#00787A", "#7A3E9D", "#2E7D32", "#C25E00", "#455A64", "#0277BD", "#AD1457", "#5D4037"];
+  function naechsteFarbe(kategorien){
+    var belegt = kategorien.map(function(k){ return k.farbe.toUpperCase(); });
+    return PALETTE.filter(function(f){ return belegt.indexOf(f) < 0; })[0] || PALETTE[kategorien.length % PALETTE.length];
   }
 
   /* Lädt daten/kacheln.json ohne Browser-Cache */
@@ -186,6 +204,6 @@
 
   window.WT = { DATEI:DATEI, STANDARD:STANDARD, KATEGORIEN:KATEGORIEN, ARTEN:ARTEN, esc:esc, host:host,
     linkErlaubt:linkErlaubt, neueId:neueId, farbeGueltig:farbeGueltig, textFarbe:textFarbe, farbStil:farbStil,
-    kategorieVon:kategorieVon, normalisieren:normalisieren, laden:laden, kopfAnwenden:kopfAnwenden,
+    naechsteFarbe:naechsteFarbe, neueKategorieId:neueKategorieId, normalisieren:normalisieren, laden:laden, kopfAnwenden:kopfAnwenden,
     kachelHtml:kachelHtml, uebersichtHtml:uebersichtHtml, reihenAktivieren:reihenAktivieren, melden:melden };
 })();

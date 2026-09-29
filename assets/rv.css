@@ -179,6 +179,7 @@ input.katname:focus{border-color:var(--rv-orange)}
 .katzeile input[type=color]{width:44px;height:38px;padding:3px;border:1px solid var(--linie);border-radius:8px;background:var(--weiss);cursor:pointer}
 .katzeile .hexfeld{width:96px;font-family:ui-monospace,Consolas,monospace;font-size:.9rem;text-transform:uppercase}
 .hexfeld.ungueltig{border-color:var(--gefahr)}
+.katanzahl{flex-basis:100%;margin:-4px 0 4px 16px;font-size:.8rem;color:var(--text-leise)}
 @media (max-width:600px){.katprobe{flex-basis:100%}}
 
 /* Art: Kachel oder Chip */

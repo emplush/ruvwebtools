@@ -24,6 +24,7 @@ public class KachelnSpeichern : IHttpHandler
     static readonly object Sperre = new object();
     static readonly Regex BildPfad = new Regex(@"daten/bilder/([0-9a-f]{40}\.(?:jpg|png|gif|webp|svg))", RegexOptions.IgnoreCase);
     static readonly Regex Farbe = new Regex(@"^#[0-9a-fA-F]{6}$");
+    static readonly Regex KatId = new Regex(@"^[A-Za-z0-9_-]{1,40}$");
     static readonly Regex BildName = new Regex(@"^[0-9a-f]{40}\.(?:jpg|png|gif|webp|svg)$", RegexOptions.IgnoreCase);
     static readonly Dictionary<string, string> Endungen = new Dictionary<string, string> {
         { "image/jpeg", "jpg" }, { "image/png", "png" }, { "image/gif", "gif" },
@@ -80,6 +81,24 @@ public class KachelnSpeichern : IHttpHandler
                     throw new Fehler(409, "Die Übersicht wurde inzwischen von jemand anderem gespeichert.", "konflikt");
 
                 Directory.CreateDirectory(bildordner);
+                // Kategorien prüfen: eindeutige Kennung, Farbton nur #RRGGBB (landet im Stil-Attribut)
+                HashSet<string> katIds = null;
+                object kategorien;
+                if (daten.TryGetValue("kategorien", out kategorien))
+                {
+                    if (!(kategorien is object[]) || ((object[])kategorien).Length == 0)
+                        throw new Fehler(400, "Es muss mindestens eine Kategorie geben", "daten");
+                    katIds = new HashSet<string>();
+                    foreach (object o in (object[])kategorien)
+                    {
+                        var kat = o as Dictionary<string, object>;
+                        if (kat == null || !KatId.IsMatch(Text(kat, "id")) || !katIds.Add(Text(kat, "id")))
+                            throw new Fehler(400, "Ungültige Kategorie", "daten");
+                        if (!Farbe.IsMatch(Text(kat, "farbe")))
+                            throw new Fehler(400, "Ungültiger Farbton bei Kategorie „" + Text(kat, "name") + "“", "farbe");
+                    }
+                }
+
                 foreach (object o in (object[])daten["kacheln"])
                 {
                     var k = o as Dictionary<string, object>;
@@ -88,6 +107,8 @@ public class KachelnSpeichern : IHttpHandler
                     string art = Text(k, "art");
                     if (art != "" && art != "kachel" && art != "chip")
                         throw new Fehler(400, "Unbekannte Art bei „" + titel + "“", "daten");
+                    if (katIds != null && !katIds.Contains(Text(k, "kategorie")))
+                        throw new Fehler(400, "„" + titel + "“ gehört zu keiner vorhandenen Kategorie", "daten");
                     Uri uri;
                     if (!Uri.TryCreate(Text(k, "link"), UriKind.Absolute, out uri) ||
                         (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
@@ -97,18 +118,6 @@ public class KachelnSpeichern : IHttpHandler
                 }
                 Auslagern(daten, "logo", bildordner);
 
-                // Farbtöne der Kategorien landen im Stil-Attribut: nur #RRGGBB zulassen
-                object kategorien;
-                if (daten.TryGetValue("kategorien", out kategorien))
-                {
-                    if (!(kategorien is object[])) throw new Fehler(400, "Ungültige Kategorien", "daten");
-                    foreach (object o in (object[])kategorien)
-                    {
-                        var kat = o as Dictionary<string, object>;
-                        if (kat == null || !Farbe.IsMatch(Text(kat, "farbe")))
-                            throw new Fehler(400, "Ungültiger Farbton bei einer Kategorie", "farbe");
-                    }
-                }
 
                 daten["stand"] = DateTime.UtcNow.ToString("o");
                 string json = ser.Serialize(daten);

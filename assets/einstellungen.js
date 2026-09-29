@@ -94,7 +94,21 @@
       }
     }
     WT.kopfAnwenden(cfg);
-    liste(); status();
+    liste(); anzahlenAktualisieren(); status();
+  }
+
+  /* Eintragsanzahl und Entfernen-Sperre der Kategorien aktuell halten, ohne die Felder neu aufzubauen */
+  function anzahlenAktualisieren(){
+    if (!cfg.kategorien.every(function(k){ return $("kn-" + k.id); }) || $("kategorien").children.length !== cfg.kategorien.length) return;
+    cfg.kategorien.forEach(function(kat){
+      var zeile = $("kategorien").querySelector('[data-id="' + kat.id + '"]'), n = anzahlEintraege(kat.id);
+      var sperre = n ? "Erst alle Kacheln und Chips dieser Kategorie entfernen oder in eine andere Kategorie verschieben."
+        : cfg.kategorien.length === 1 ? "Mindestens eine Kategorie muss bestehen bleiben." : "";
+      var b = zeile.querySelector("[data-a=katdel]");
+      b.disabled = !!sperre;
+      if (sperre) b.title = sperre; else b.removeAttribute("title");
+      zeile.querySelector(".katanzahl").textContent = n === 0 ? "keine Einträge" : n === 1 ? "1 Eintrag" : n + " Einträge";
+    });
   }
 
   function status(){
@@ -216,35 +230,38 @@
   $("liste").addEventListener("pointerup", zugEnde);
   $("liste").addEventListener("pointercancel", zugEnde);
 
-  /* ---------- Kategorien (Name und Farbton) ---------- */
+  /* ---------- Kategorien (Name, Farbton, hinzufügen, entfernen) ---------- */
   function katVon(id){ return cfg.kategorien.filter(function(k){ return k.id === id; })[0]; }
-  function istStandard(kat){ var s = WT.kategorieVon(kat.id); return kat.name === s.name && kat.farbe === s.farbe; }
+  function anzahlEintraege(id){ return cfg.kacheln.filter(function(k){ return k.kategorie === id; }).length; }
 
   function kategorienAnzeigen(){
+    var nurEine = cfg.kategorien.length === 1;
     $("kategorien").innerHTML = cfg.kategorien.map(function(kat){
+      var n = anzahlEintraege(kat.id);
+      var sperre = n ? "Erst alle Kacheln und Chips dieser Kategorie entfernen oder in eine andere Kategorie verschieben."
+        : nurEine ? "Mindestens eine Kategorie muss bestehen bleiben." : "";
       return '<div class="katzeile" data-id="' + kat.id + '">' +
-        '<input type="text" class="katprobe katname" id="kn-' + kat.id + '" value="' + WT.esc(kat.name) + '" maxlength="40" style="' + WT.farbStil(kat) + '" aria-label="Name der Kategorie (Standard: ' + WT.esc(WT.kategorieVon(kat.id).name) + ')">' +
+        '<input type="text" class="katprobe katname" id="kn-' + kat.id + '" value="' + WT.esc(kat.name) + '" maxlength="40" style="' + WT.farbStil(kat) + '" aria-label="Name der Kategorie">' +
         '<input type="color" id="kf-' + kat.id + '" value="' + kat.farbe.toLowerCase() + '" aria-label="Farbton ' + WT.esc(kat.name) + '">' +
         '<input type="text" class="hexfeld" id="kh-' + kat.id + '" value="' + kat.farbe + '" maxlength="7" spellcheck="false" aria-label="Farbwert ' + WT.esc(kat.name) + ' (z. B. #003A7D)">' +
-        '<button type="button" class="knopf klein" data-a="standard"' + (istStandard(kat) ? ' disabled' : '') + '>Standard</button>' +
+        '<button type="button" class="knopf klein gefahr" data-a="katdel"' + (sperre ? ' disabled title="' + WT.esc(sperre) + '"' : '') + '>Entfernen</button>' +
+        '<span class="katanzahl">' + (n === 0 ? "keine Einträge" : n === 1 ? "1 Eintrag" : n + " Einträge") + '</span>' +
       '</div>';
     }).join("");
     kategorieOptionen();
   }
-  /* Auswahlliste im Formular mit den aktuellen Namen füllen, Auswahl beibehalten */
+  /* Auswahlliste im Formular mit den aktuellen Kategorien füllen, Auswahl beibehalten */
   function kategorieOptionen(){
-    var sel = $("k-kategorie"), wert = sel.value || WT.KATEGORIEN[0].id;
+    var sel = $("k-kategorie"), wert = sel.value;
     sel.innerHTML = cfg.kategorien.map(function(k){ return '<option value="' + k.id + '">' + WT.esc(k.name) + '</option>'; }).join("");
-    sel.value = wert;
+    sel.value = katVon(wert) ? wert : cfg.kategorien[0].id;
   }
   /* Übernimmt geänderten Namen/Farbton und aktualisiert die Zeile, ohne das gerade bearbeitete Feld zu stören */
   function katAktualisieren(kat){
-    var id = kat.id, zeile = $("kategorien").querySelector('[data-id="' + id + '"]');
+    var id = kat.id;
     $("kn-" + id).setAttribute("style", WT.farbStil(kat));
-    if (document.activeElement !== $("kn-" + id)) $("kn-" + id).value = kat.name;
     if (document.activeElement !== $("kf-" + id)) $("kf-" + id).value = kat.farbe.toLowerCase();
     if (document.activeElement !== $("kh-" + id)) $("kh-" + id).value = kat.farbe;
-    zeile.querySelector("[data-a=standard]").disabled = istStandard(kat);
     kategorieOptionen();
     aendern();
   }
@@ -252,7 +269,8 @@
     var zeile = e.target.closest(".katzeile"); if (!zeile) return;
     var kat = katVon(zeile.dataset.id), wert = e.target.value.trim();
     if (e.target.classList.contains("katname")){
-      kat.name = wert || WT.kategorieVon(kat.id).name;
+      if (!wert) return; /* leerer Name: beim Verlassen des Feldes wird der letzte Name wiederhergestellt */
+      kat.name = wert;
     } else {
       if (e.target.classList.contains("hexfeld")){
         if (!/^#/.test(wert)) wert = "#" + wert;
@@ -271,11 +289,24 @@
     if (e.target.classList.contains("katname")) e.target.value = kat.name;
   });
   $("kategorien").addEventListener("click", function(e){
-    var b = e.target.closest("[data-a=standard]"); if (!b) return;
-    var kat = katVon(b.closest(".katzeile").dataset.id), s = WT.kategorieVon(kat.id);
-    kat.name = s.name; kat.farbe = s.farbe;
-    katAktualisieren(kat);
+    var b = e.target.closest("[data-a=katdel]"); if (!b || b.disabled) return;
+    var kat = katVon(b.closest(".katzeile").dataset.id);
+    if (anzahlEintraege(kat.id) || cfg.kategorien.length < 2) return;
+    bestaetigen({ titel: "Kategorie entfernen", text: "Die Kategorie „" + kat.name + "“ wird entfernt.", ok: "Entfernen", gefahr: true })
+      .then(function(ok){
+        if (!ok || anzahlEintraege(kat.id)) return;
+        cfg.kategorien = cfg.kategorien.filter(function(k){ return k.id !== kat.id; });
+        kategorienAnzeigen(); aendern();
+        WT.melden("Kategorie entfernt. Zum Veröffentlichen „Speichern“ klicken.");
+      });
   });
+  $("kat-neu").onclick = function(){
+    var kat = { id: WT.neueKategorieId(), name: "Neue Kategorie", farbe: WT.naechsteFarbe(cfg.kategorien) };
+    cfg.kategorien.push(kat);
+    kategorienAnzeigen(); aendern();
+    var feld = $("kn-" + kat.id);
+    feld.focus(); feld.select();
+  };
 
   /* ---------- Formular für Kacheln und Chips ---------- */
 
@@ -299,7 +330,7 @@
     bearbeiteId = null; formBild = ""; formOriginal = "";
     $("k-titel").value = ""; $("k-link").value = "";
     $("k-art-kachel").checked = true;
-    $("k-kategorie").value = WT.KATEGORIEN[0].id;
+    $("k-kategorie").value = cfg.kategorien[0].id;
     formTexte(); vorschau(); liste();
   }
 

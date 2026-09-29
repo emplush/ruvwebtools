@@ -33,18 +33,21 @@ Soll nur eine bestimmte Gruppe ändern dürfen, den vorbereiteten Block am Ende 
 - oder direkt `einstellungen.html` aufrufen
 
 ## Kategorien, Kacheln und Chips
-- Es gibt drei Kategorien in dieser Reihenfolge: **E-Learning**, **LMS**, **IDD**.
-  Jede erscheint auf der Übersicht als eigene Reihe; leere Kategorien werden ausgeblendet.
+- Zu Beginn gibt es drei Kategorien: **E-Learning**, **LMS**, **IDD**. Jede Kategorie erscheint
+  auf der Übersicht als eigene Reihe, in der Reihenfolge der Einstellungen; Kategorien ohne
+  Einträge werden auf der Übersicht ausgeblendet.
+- In den Einstellungen unter „Kategorien“ lassen sich Kategorien **hinzufügen** (neue kommen
+  ans Ende) und **entfernen**. Entfernen geht erst, wenn die Kategorie keine Kacheln und Chips
+  mehr enthält; eine Kategorie muss immer bestehen bleiben.
 - **Kacheln** haben ein quadratisches Bild und darunter den Titel im Farbton der Kategorie.
   Passen nicht alle in die Reihe, lässt sie sich waagerecht blättern.
 - **Chips** sind schmale, abgerundete Einträge ohne Bild. Sie stehen rechts neben den Kacheln
   ihrer Kategorie untereinander (auf dem Handy darunter).
-- **Name** (Überschrift der Reihe) und **Farbton** jeder Kategorie sind in den Einstellungen
-  unter „Kategorien“ änderbar; „Standard“ setzt beides zurück. Die Schriftfarbe (weiß oder
-  dunkel) wird automatisch passend gewählt.
+- **Name** (Überschrift der Reihe) und **Farbton** jeder Kategorie sind dort ebenfalls änderbar.
+  Die Schriftfarbe (weiß oder dunkel) wird automatisch passend gewählt.
 - Der **Einleitungstext** über allen Reihen und der Seitentitel stehen unter „Seite“.
 - Kacheln und Chips öffnen ihren Link in einem neuen Fenster. Der Link selbst wird nicht angezeigt.
-- Vorhandene Kacheln aus älteren Versionen landen automatisch in „E-Learning“.
+- Vorhandene Kacheln aus älteren Versionen landen automatisch in der ersten Kategorie („E-Learning“).
 
 ## Wie gespeichert wird
 - **Bilder** werden als Dateien in `daten/bilder` abgelegt (Dateiname = Prüfsumme des Inhalts),
@@ -65,7 +68,7 @@ die aktuellen Kacheln und Bilder.
 
 ## Anpassungen
 - Farben und Schrift: oben in `assets/rv.css` unter `:root`
-- Standard-Namen und -Farbtöne der Kategorien: `KATEGORIEN` in `assets/gemeinsam.js`
+- Start-Kategorien für ältere Daten: `KATEGORIEN` in `assets/gemeinsam.js`; Farbtöne für neue Kategorien: `PALETTE`
 - Logo: in den Einstellungen unter „Seite“ hochladen
 - Bildgröße der Kacheln: `AUSGABE` in `assets/zuschnitt.js` (Standard 600 × 600 px)
 - Größe der aufbewahrten Originale: `ORIGINAL_MAX` in `assets/einstellungen.js` (Standard 1600 px)
