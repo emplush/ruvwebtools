@@ -39,24 +39,6 @@
         <p class="hinweis" style="margin:0 0 14px">Reihenfolge innerhalb einer Gruppe per Ziehen am Griff oder mit den Pfeilen ändern. So erscheinen die Einträge auch auf der Übersicht.</p>
         <div id="liste"></div>
       </section>
-
-      <section class="feld" aria-labelledby="h-seite">
-        <h2 id="h-seite">Seite</h2>
-        <label for="s-titel">Seitentitel</label>
-        <input type="text" id="s-titel" maxlength="80">
-        <label for="s-einleitung">Einleitungstext</label>
-        <textarea id="s-einleitung" maxlength="300"></textarea>
-        <label>Logo</label>
-        <div class="bildfeld">
-          <div class="logovorschau" id="logovorschau">Kein Logo</div>
-          <div class="bildknoepfe">
-            <button class="knopf klein" id="logo-hochladen">Logo hochladen</button>
-            <button class="knopf klein gefahr" id="logo-entfernen">Logo entfernen</button>
-            <input type="file" id="logodatei" accept="image/*" hidden>
-          </div>
-        </div>
-        <p class="hinweis">Bitte die offizielle Logodatei (am besten weiß, als SVG oder PNG) verwenden.</p>
-      </section>
     </div>
 
     <div>
@@ -94,8 +76,26 @@
 
       <section class="feld" aria-labelledby="h-kategorien">
         <h2 id="h-kategorien">Kategorien</h2>
-        <p class="hinweis" style="margin:6px 0 4px">Der Farbton färbt den Bereich unter dem Kachelbild und die Chips der Kategorie. Die Schriftfarbe passt sich automatisch an.</p>
+        <p class="hinweis" style="margin:6px 0 4px">Der Name erscheint als Überschrift über der Reihe (zum Ändern ins Feld klicken). Der Farbton färbt den Bereich unter dem Kachelbild und die Chips der Kategorie; die Schriftfarbe passt sich automatisch an.</p>
         <div class="kategorienliste" id="kategorien"></div>
+      </section>
+
+      <section class="feld" aria-labelledby="h-seite">
+        <h2 id="h-seite">Seite</h2>
+        <label for="s-titel">Seitentitel</label>
+        <input type="text" id="s-titel" maxlength="80">
+        <label for="s-einleitung">Einleitungstext</label>
+        <textarea id="s-einleitung" maxlength="300"></textarea>
+        <label>Logo</label>
+        <div class="bildfeld">
+          <div class="logovorschau" id="logovorschau">Kein Logo</div>
+          <div class="bildknoepfe">
+            <button class="knopf klein" id="logo-hochladen">Logo hochladen</button>
+            <button class="knopf klein gefahr" id="logo-entfernen">Logo entfernen</button>
+            <input type="file" id="logodatei" accept="image/*" hidden>
+          </div>
+        </div>
+        <p class="hinweis">Bitte die offizielle Logodatei (am besten weiß, als SVG oder PNG) verwenden.</p>
       </section>
     </div>
   </div>

@@ -216,52 +216,68 @@
   $("liste").addEventListener("pointerup", zugEnde);
   $("liste").addEventListener("pointercancel", zugEnde);
 
-  /* ---------- Kategorien (Farbtöne) ---------- */
+  /* ---------- Kategorien (Name und Farbton) ---------- */
+  function katVon(id){ return cfg.kategorien.filter(function(k){ return k.id === id; })[0]; }
+  function istStandard(kat){ var s = WT.kategorieVon(kat.id); return kat.name === s.name && kat.farbe === s.farbe; }
+
   function kategorienAnzeigen(){
     $("kategorien").innerHTML = cfg.kategorien.map(function(kat){
-      var standard = WT.kategorieVon(kat.id).farbe;
       return '<div class="katzeile" data-id="' + kat.id + '">' +
-        '<span class="katprobe" style="' + WT.farbStil(kat) + '">' + WT.esc(kat.name) + '</span>' +
+        '<input type="text" class="katprobe katname" id="kn-' + kat.id + '" value="' + WT.esc(kat.name) + '" maxlength="40" style="' + WT.farbStil(kat) + '" aria-label="Name der Kategorie (Standard: ' + WT.esc(WT.kategorieVon(kat.id).name) + ')">' +
         '<input type="color" id="kf-' + kat.id + '" value="' + kat.farbe.toLowerCase() + '" aria-label="Farbton ' + WT.esc(kat.name) + '">' +
         '<input type="text" class="hexfeld" id="kh-' + kat.id + '" value="' + kat.farbe + '" maxlength="7" spellcheck="false" aria-label="Farbwert ' + WT.esc(kat.name) + ' (z. B. #003A7D)">' +
-        '<button type="button" class="knopf klein" data-a="standard"' + (kat.farbe === standard ? ' disabled' : '') + '>Standard</button>' +
+        '<button type="button" class="knopf klein" data-a="standard"' + (istStandard(kat) ? ' disabled' : '') + '>Standard</button>' +
       '</div>';
     }).join("");
+    kategorieOptionen();
   }
-  function farbeSetzen(id, farbe){
-    var kat = cfg.kategorien.filter(function(k){ return k.id === id; })[0];
-    kat.farbe = farbe.toUpperCase();
-    var zeile = $("kategorien").querySelector('[data-id="' + id + '"]');
-    zeile.querySelector(".katprobe").setAttribute("style", WT.farbStil(kat));
+  /* Auswahlliste im Formular mit den aktuellen Namen füllen, Auswahl beibehalten */
+  function kategorieOptionen(){
+    var sel = $("k-kategorie"), wert = sel.value || WT.KATEGORIEN[0].id;
+    sel.innerHTML = cfg.kategorien.map(function(k){ return '<option value="' + k.id + '">' + WT.esc(k.name) + '</option>'; }).join("");
+    sel.value = wert;
+  }
+  /* Übernimmt geänderten Namen/Farbton und aktualisiert die Zeile, ohne das gerade bearbeitete Feld zu stören */
+  function katAktualisieren(kat){
+    var id = kat.id, zeile = $("kategorien").querySelector('[data-id="' + id + '"]');
+    $("kn-" + id).setAttribute("style", WT.farbStil(kat));
+    if (document.activeElement !== $("kn-" + id)) $("kn-" + id).value = kat.name;
     if (document.activeElement !== $("kf-" + id)) $("kf-" + id).value = kat.farbe.toLowerCase();
     if (document.activeElement !== $("kh-" + id)) $("kh-" + id).value = kat.farbe;
-    zeile.querySelector("[data-a=standard]").disabled = kat.farbe === WT.kategorieVon(id).farbe;
+    zeile.querySelector("[data-a=standard]").disabled = istStandard(kat);
+    kategorieOptionen();
     aendern();
   }
   $("kategorien").addEventListener("input", function(e){
     var zeile = e.target.closest(".katzeile"); if (!zeile) return;
-    var wert = e.target.value.trim();
-    if (e.target.classList.contains("hexfeld")){
-      if (!/^#/.test(wert)) wert = "#" + wert;
-      var gueltig = WT.farbeGueltig(wert);
-      e.target.classList.toggle("ungueltig", !gueltig);
-      if (!gueltig) return;
+    var kat = katVon(zeile.dataset.id), wert = e.target.value.trim();
+    if (e.target.classList.contains("katname")){
+      kat.name = wert || WT.kategorieVon(kat.id).name;
+    } else {
+      if (e.target.classList.contains("hexfeld")){
+        if (!/^#/.test(wert)) wert = "#" + wert;
+        var gueltig = WT.farbeGueltig(wert);
+        e.target.classList.toggle("ungueltig", !gueltig);
+        if (!gueltig) return;
+      }
+      kat.farbe = wert.toUpperCase();
     }
-    farbeSetzen(zeile.dataset.id, wert);
+    katAktualisieren(kat);
   });
   $("kategorien").addEventListener("focusout", function(e){
-    if (!e.target.classList.contains("hexfeld")) return;
-    var kat = cfg.kategorien.filter(function(k){ return k.id === e.target.closest(".katzeile").dataset.id; })[0];
-    e.target.value = kat.farbe; e.target.classList.remove("ungueltig");
+    var zeile = e.target.closest(".katzeile"); if (!zeile) return;
+    var kat = katVon(zeile.dataset.id);
+    if (e.target.classList.contains("hexfeld")){ e.target.value = kat.farbe; e.target.classList.remove("ungueltig"); }
+    if (e.target.classList.contains("katname")) e.target.value = kat.name;
   });
   $("kategorien").addEventListener("click", function(e){
     var b = e.target.closest("[data-a=standard]"); if (!b) return;
-    var id = b.closest(".katzeile").dataset.id;
-    farbeSetzen(id, WT.kategorieVon(id).farbe);
+    var kat = katVon(b.closest(".katzeile").dataset.id), s = WT.kategorieVon(kat.id);
+    kat.name = s.name; kat.farbe = s.farbe;
+    katAktualisieren(kat);
   });
 
   /* ---------- Formular für Kacheln und Chips ---------- */
-  $("k-kategorie").innerHTML = WT.KATEGORIEN.map(function(k){ return '<option value="' + k.id + '">' + WT.esc(k.name) + '</option>'; }).join("");
 
   function formArt(){ return $("k-art-chip").checked ? "chip" : "kachel"; }
   function formTexte(){

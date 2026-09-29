@@ -173,6 +173,9 @@ textarea{resize:vertical;min-height:70px}
 .kategorienliste{display:flex;flex-direction:column;gap:10px;margin-top:12px}
 .katzeile{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .katprobe{flex:1 1 140px;min-width:0;padding:8px 16px;border-radius:999px;background:var(--kat);color:var(--kat-text);font-weight:600;font-size:.95rem}
+input.katname{width:auto;border:2px solid transparent;border-radius:999px;background:var(--kat);color:var(--kat-text);font:inherit;font-weight:600;font-size:.95rem;padding:7px 16px;cursor:text}
+input.katname:hover{border-color:var(--linie)}
+input.katname:focus{border-color:var(--rv-orange)}
 .katzeile input[type=color]{width:44px;height:38px;padding:3px;border:1px solid var(--linie);border-radius:8px;background:var(--weiss);cursor:pointer}
 .katzeile .hexfeld{width:96px;font-family:ui-monospace,Consolas,monospace;font-size:.9rem;text-transform:uppercase}
 .hexfeld.ungueltig{border-color:var(--gefahr)}

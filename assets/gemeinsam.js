@@ -2,7 +2,7 @@
 (function(){
   var DATEI = "daten/kacheln.json";
 
-  /* Feste Kategorien in Anzeigereihenfolge; der Farbton ist in den Einstellungen änderbar */
+  /* Feste Kategorien in Anzeigereihenfolge mit Standard-Name und -Farbton; beides ist in den Einstellungen änderbar */
   var KATEGORIEN = [
     { id: "elearning", name: "E-Learning", farbe: "#003A7D" },
     { id: "lms",       name: "LMS",        farbe: "#00787A" },
@@ -63,7 +63,8 @@
     });
     var kategorien = KATEGORIEN.map(function(s){
       var g = gespeichert[s.id] || {};
-      return { id: s.id, name: s.name, farbe: farbeGueltig(g.farbe) ? g.farbe.toUpperCase() : s.farbe };
+      var name = typeof g.name === "string" ? g.name.trim().slice(0, 40) : "";
+      return { id: s.id, name: name || s.name, farbe: farbeGueltig(g.farbe) ? g.farbe.toUpperCase() : s.farbe };
     });
     var ids = {};
     var kacheln = (Array.isArray(d.kacheln) ? d.kacheln : []).filter(function(k){
